@@ -3,7 +3,7 @@ package in.nimbo.isDoing.searchEngine;
 import java.util.Iterator;
 
 public interface UrlQueue<U> {
-    public void add(U url);
+    public void push(U url);
 
-    public Iterator<U> pull(int number);
+    public Iterator<U> pop(int number);
 }
