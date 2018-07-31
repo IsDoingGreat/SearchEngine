@@ -13,6 +13,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jsoup.version>1.11.3</jsoup.version>
+        <elastic.version>6.3.2</elastic.version>
+        <boilerpipe.version>1.2.3</boilerpipe.version>
     </properties>
 
     <dependencies>
@@ -30,9 +32,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elastic.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>${jsoup.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.robbypond</groupId>
+            <artifactId>boilerpipe</artifactId>
+            <version>${boilerpipe.version}</version>
         </dependency>
 
     </dependencies>

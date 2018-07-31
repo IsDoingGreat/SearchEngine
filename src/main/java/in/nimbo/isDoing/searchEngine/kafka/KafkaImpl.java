@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine;
+package in.nimbo.isDoing.searchEngine.kafka;
 
 import java.util.Collections;
 import java.util.Properties;

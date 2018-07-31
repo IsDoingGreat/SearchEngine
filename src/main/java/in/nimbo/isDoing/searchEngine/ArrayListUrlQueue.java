@@ -1,25 +1,28 @@
 package in.nimbo.isDoing.searchEngine;
 
+import in.nimbo.isDoing.searchEngine.interfaces.UrlQueue;
+
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ArrayListUrlQueue implements UrlQueue<String> {
-    LinkedList<String> linkedList = new LinkedList<>();
+    List<String> linkedList = new CopyOnWriteArrayList<>();
 
     @Override
     public void push(String url) {
-        linkedList.offerLast(url);
+        linkedList.add(url);
     }
 
     @Override
-    public Iterator<String> pop(int number) {
+    public List<String> pop(int number) {
         List<String> list = new ArrayList<>(number);
         while (number > 0 && linkedList.size() > 0) {
-            list.add(linkedList.pop());
+            list.add(linkedList.get(0));
+            linkedList.remove(0);
             number--;
         }
-        return list.iterator();
+        return Collections.unmodifiableList(list);
     }
 }
