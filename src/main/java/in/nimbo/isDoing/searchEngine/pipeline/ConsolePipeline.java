@@ -2,15 +2,17 @@ package in.nimbo.isDoing.searchEngine.pipeline;
 
 import asg.cliche.Command;
 import asg.cliche.ShellFactory;
+import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ConsolePipeline {
     private final static Logger logger = LoggerFactory.getLogger(ConsolePipeline.class);
-    private Output output = new ConsoleOutput();
+    private static Output output = new ConsoleOutput();
 
     public static void load() {
         try {
+            Engine.start(output);
             ShellFactory.createConsoleShell("Search Engine", "Enter '?list' to list all commands",
                     new ConsolePipeline()).commandLoop();
 

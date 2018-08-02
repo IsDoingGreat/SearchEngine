@@ -2,12 +2,12 @@ package in.nimbo.isDoing.searchEngine.pipeline;
 
 public class ConsoleOutput implements Output {
     @Override
-    public void out(String object) {
-        out(Type.INFO, object);
+    public void show(String object) {
+        show(Type.INFO, object);
     }
 
     @Override
-    public void out(Type type, String object) {
+    public void show(Type type, String object) {
         if (type == Type.INFO)
             System.out.println(object);
         else
