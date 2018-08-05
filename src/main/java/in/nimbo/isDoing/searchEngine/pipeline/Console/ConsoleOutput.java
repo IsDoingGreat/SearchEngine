@@ -1,4 +1,6 @@
-package in.nimbo.isDoing.searchEngine.pipeline;
+package in.nimbo.isDoing.searchEngine.pipeline.Console;
+
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 
 public class ConsoleOutput implements Output {
     @Override

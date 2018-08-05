@@ -17,8 +17,8 @@ public class Engine {
         this.configs = config;
     }
 
-    public synchronized static void start(Output out) throws Exception {
-        start(out, new SystemConfigs());
+    public synchronized static Engine start(Output out) throws Exception {
+        return start(out, new SystemConfigs());
     }
 
     public synchronized static Engine start(Output out, Configs configs) throws Exception {
@@ -42,8 +42,8 @@ public class Engine {
     public void startService(String name) {
         if (name.equals("crawler"))
             startService(new CrawlerService());
-
-        output.show(Output.Type.ERROR, "Service Not Found");
+        else
+            output.show(Output.Type.ERROR, "Service Not Found");
     }
 
     public void startService(Service service) {

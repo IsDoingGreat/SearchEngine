@@ -1,8 +1,9 @@
-package in.nimbo.isDoing.searchEngine.pipeline;
+package in.nimbo.isDoing.searchEngine.pipeline.Console;
 
 import asg.cliche.Command;
 import asg.cliche.ShellFactory;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,11 +11,13 @@ public class ConsolePipeline {
     private final static Logger logger = LoggerFactory.getLogger(ConsolePipeline.class);
     private static Output output = new ConsoleOutput();
 
-    public static void load() {
+    public void load() {
         try {
-            Engine.start(output);
+            Engine engine = Engine.start(output);
+
             ShellFactory.createConsoleShell("Search Engine", "Enter '?list' to list all commands",
-                    new ConsolePipeline()).commandLoop();
+                    new ConsoleCommands(engine)).commandLoop();
+
 
         } catch (Exception e) {
             logger.error("Program Exited With Error", e);
@@ -22,8 +25,4 @@ public class ConsolePipeline {
         }
     }
 
-    @Command
-    public void start() {
-        // TODO: 8/2/18  
-    }
 }
