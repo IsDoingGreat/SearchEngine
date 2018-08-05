@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class PageCrawlerImpl implements PageCrawler {
@@ -25,10 +26,19 @@ public class PageCrawlerImpl implements PageCrawler {
             controller.addNewAliveThread();
             while (!Thread.interrupted()) {
                 String link = controller.getQueue().take();
-                URL url = new URL(link);
-                if (controller.getLRU().isRecentlyUsed(url.getHost()) ||
-                        controller.getDuplicateChecker().isDuplicate(link)
-                ) {
+                URL url;
+
+                try {
+                    url = new URL(link);
+                } catch (MalformedURLException e) {
+                    continue;
+                }
+
+                if (controller.getDuplicateChecker().isDuplicate(link)) {
+                    controller.getURLQueue().push(url.toExternalForm());
+                }
+
+                if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     continue;
                 }
 
@@ -36,8 +46,6 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 Page page;
                 try {
-                    url = new URL(link);
-
                     page = controller.getFetcher().fetch(url);
                     page.parse();
                 } catch (Exception e) {
