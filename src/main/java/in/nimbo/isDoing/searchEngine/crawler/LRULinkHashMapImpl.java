@@ -44,6 +44,11 @@ public class LRULinkHashMapImpl implements LRU {
         map.put(url, new Date());
     }
 
+    @Override
+    public void stop() {
+
+    }
+
 
     private static class DateLinkedHashMap extends LinkedHashMap<String, Date> {
         DateLinkedHashMap(int initialCapacity, float loadFactor) {

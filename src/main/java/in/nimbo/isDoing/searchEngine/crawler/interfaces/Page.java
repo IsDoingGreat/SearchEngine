@@ -22,4 +22,6 @@ public interface Page {
     String getDescription();
 
     Set<String> getOutgoingUrls();
+
+    String getLang();
 }

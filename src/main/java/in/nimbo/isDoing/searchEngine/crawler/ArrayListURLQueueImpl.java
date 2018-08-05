@@ -28,4 +28,9 @@ public class ArrayListURLQueueImpl implements URLQueue {
         }
         return Collections.unmodifiableList(list);
     }
+
+    @Override
+    public void stop() {
+
+    }
 }

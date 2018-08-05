@@ -6,4 +6,6 @@ public interface URLQueue {
     void push(String url);
 
     List<String> pop(int number);
+
+    void stop();
 }

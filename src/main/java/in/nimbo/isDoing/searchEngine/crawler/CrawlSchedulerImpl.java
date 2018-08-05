@@ -16,6 +16,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     private final static Logger logger = LoggerFactory.getLogger(CrawlSchedulerImpl.class);
     private static final int DEFAULT_MAX_ACTIVE_CRAWLERS = 100;
     private static final int DEFAULT_QUEUE_SIZE = 100;
+
+
     private int maxActiveCrawlers;
     private int queueSize;
     private PageCrawlerController controller;
@@ -24,6 +26,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     private volatile boolean exitRequested = false;
     private BlockingQueue<String> queue;
     private URLQueue urlQueue;
+    private Thread counterThread;
 
     public CrawlSchedulerImpl(URLQueue urlQueue) {
         logger.info("Creating CrawlScheduler");
@@ -62,23 +65,27 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             numberOfThreads++;
         }
 
-        new Thread(() -> {
+
+        counterThread = new Thread(() -> {
             try {
                 int lastCount = 0;
                 while (!Thread.interrupted()) {
                     Thread.sleep(1000);
                     int totalCrawls = controller.getTotalCrawls();
-                    Engine.getOutput().show(String.valueOf(totalCrawls - lastCount));
+                    logger.info("Crawled Per Second:" + (totalCrawls - lastCount));
                     lastCount = totalCrawls;
                 }
 
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.info("counterThread stopped");
             }
-        }).start();
+        });
+        counterThread.setDaemon(true);
+        counterThread.start();
+
 
         try {
-            while (!exitRequested) {
+            while (!exitRequested && !Thread.interrupted()) {
                 List<String> urlList = urlQueue.pop(queueSize);
 
                 for (String url : urlList) {
@@ -94,6 +101,14 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     @Override
     public void run() {
         startCrawling();
+    }
+
+    @Override
+    public void stop() {
+        exitRequested = true;
+        counterThread.interrupt();
+        executor.shutdown();
+        controller.stop();
     }
 
     private static class ThreadFactory implements java.util.concurrent.ThreadFactory {

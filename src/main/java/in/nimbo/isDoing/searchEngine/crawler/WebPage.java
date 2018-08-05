@@ -110,4 +110,18 @@ public class WebPage implements Page {
 
         return urls;
     }
+
+    @Override
+    public String getLang() {
+        Objects.requireNonNull(document);
+        Element html = document.selectFirst("html");
+        String lang = null;
+        if (html != null) {
+            lang = html.attr("lang");
+        }
+        if (lang == null)
+            return "";
+        else
+            return lang;
+    }
 }

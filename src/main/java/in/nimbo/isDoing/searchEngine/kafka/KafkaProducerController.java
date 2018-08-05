@@ -38,4 +38,9 @@ public class KafkaProducerController {
 
         producer.send(record).get();
     }
+
+    public void stop() {
+        if (producer!= null)
+            producer.close();
+    }
 }

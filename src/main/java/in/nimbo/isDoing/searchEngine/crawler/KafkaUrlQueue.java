@@ -31,12 +31,12 @@ public class KafkaUrlQueue implements URLQueue {
         consumerController = new KafkaConsumerController(brokers, consumerGroupId, consumerMaxPoolRecords, topicName);
         producerController = new KafkaProducerController(brokers, producerClientId, topicName);
     }
-    
+
 
     @Override
     public void push(String url) {
         try {
-            producerController.produce(1, url);
+            producerController.produce(url);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -50,5 +50,11 @@ public class KafkaUrlQueue implements URLQueue {
             list.add(record.value());
         }
         return Collections.unmodifiableList(list);
+    }
+
+    @Override
+    public void stop() {
+        consumerController.stop();
+        producerController.stop();
     }
 }

@@ -33,7 +33,7 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
                 urlQueue,
                 new PageFetcherImpl(),
                 new LRULinkHashMapImpl(),
-                new MockingPagePersister(),
+                new ElasticSearchPagePersister(),
                 new MockingDuplicateChecker()
         );
         logger.info("PageCrawlerController Created");
@@ -86,5 +86,23 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
     @Override
     public int getTotalCrawls() {
         return totalCrawls.get();
+    }
+
+    @Override
+    public void stop() {
+        if (lru != null)
+            lru.stop();
+
+        if (fetcher != null)
+            fetcher.stop();
+
+        if (persister != null)
+            persister.stop();
+
+        if (duplicateChecker != null)
+            duplicateChecker.stop();
+
+        if (urlQueue != null)
+            urlQueue.stop();
     }
 }

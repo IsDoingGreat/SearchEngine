@@ -24,4 +24,6 @@ public interface PageCrawlerController {
     int getAliveThreads();
 
     int getTotalCrawls();
+
+    void stop();
 }

@@ -49,4 +49,9 @@ public class PageFetcherImpl implements PageFetcher {
 
         return new WebPage(response.body(), url, response.headers());
     }
+
+    @Override
+    public void stop() {
+
+    }
 }

@@ -11,4 +11,9 @@ public class MockingDuplicateChecker implements DuplicateChecker {
     public boolean isDuplicate(String page) throws Exception {
         return false;
     }
+
+    @Override
+    public void stop() {
+
+    }
 }

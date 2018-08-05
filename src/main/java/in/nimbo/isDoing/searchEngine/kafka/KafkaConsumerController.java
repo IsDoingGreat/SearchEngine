@@ -1,9 +1,6 @@
 package in.nimbo.isDoing.searchEngine.kafka;
 
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
@@ -30,6 +27,13 @@ public class KafkaConsumerController {
     }
 
     public Iterable<ConsumerRecord<Long, String>> get() {
-        return consumer.poll(1000);
+        ConsumerRecords<Long, String> records = consumer.poll(1000);
+        consumer.commitAsync();
+        return records;
+    }
+
+    public void stop() {
+        if (consumer != null)
+            consumer.close();
     }
 }

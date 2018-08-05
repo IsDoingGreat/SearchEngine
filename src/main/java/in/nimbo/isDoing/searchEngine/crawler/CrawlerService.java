@@ -22,7 +22,7 @@ public class CrawlerService implements Service {
 
     public CrawlerService() {
         logger.info("Creating Crawler Service...");
-        urlQueue = new ArrayListURLQueueImpl();
+        urlQueue = new KafkaUrlQueue();
         scheduler = new CrawlSchedulerImpl(urlQueue);
         logger.info("Crawler Service Created");
     }
@@ -34,13 +34,20 @@ public class CrawlerService implements Service {
         boolean initSeeds = Boolean.parseBoolean(Engine.getConfigs().get("crawler.initSeeds",
                 String.valueOf(true)));
 
-        
+
         if (initSeeds)
             initSeeds();
 
 
         schedulerThread = new Thread(scheduler);
+        schedulerThread.setDaemon(true);
         schedulerThread.start();
+    }
+
+    @Override
+    public void stop() {
+        scheduler.stop();
+        schedulerThread.interrupt();
     }
 
     private void initSeeds() {
@@ -64,5 +71,10 @@ public class CrawlerService implements Service {
     @Override
     public Status status() {
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return "crawler";
     }
 }

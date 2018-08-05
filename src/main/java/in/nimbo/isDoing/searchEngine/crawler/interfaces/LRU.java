@@ -4,4 +4,6 @@ public interface LRU {
     boolean isRecentlyUsed(String url);
 
     void setUsed(String url);
+
+    void stop();
 }

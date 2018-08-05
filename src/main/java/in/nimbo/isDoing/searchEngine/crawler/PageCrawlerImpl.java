@@ -34,21 +34,27 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 controller.getLRU().setUsed(url.getHost());
 
+                Page page;
                 try {
                     url = new URL(link);
 
-
-                    Page page = controller.getFetcher().fetch(url);
+                    page = controller.getFetcher().fetch(url);
                     page.parse();
-
-                    for (String outgoingUrl : page.getOutgoingUrls()) {
-                        controller.getURLQueue().push(outgoingUrl);
-                    }
-
-                    controller.getPersister().insert(page);
-                    controller.newSiteCrawled();
-                } catch (PageFetcher.BadStatusCodeException | IOException | UncheckedIOException ignored) {
+                } catch (Exception e) {
+                    continue;
                 }
+
+                if (!page.getLang().startsWith("en")) {
+                    continue;
+                }
+
+                for (String outgoingUrl : page.getOutgoingUrls()) {
+                    controller.getURLQueue().push(outgoingUrl);
+                }
+
+                controller.getPersister().insert(page);
+                controller.newSiteCrawled();
+
 
             }
         } catch (Exception e) {
