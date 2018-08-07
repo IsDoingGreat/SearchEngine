@@ -5,13 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ArrayListURLQueueImpl implements URLQueue {
     private final static Logger logger = LoggerFactory.getLogger(ArrayListURLQueueImpl.class);
-    private List<String> linkedList = new Vector<>();
+    private Queue<String> linkedList = new ConcurrentLinkedQueue<>();
 
     @Override
     public void push(String url) {
@@ -22,11 +22,10 @@ public class ArrayListURLQueueImpl implements URLQueue {
     public List<String> pop(int number) {
         List<String> list = new ArrayList<>(number);
         while (number > 0 && linkedList.size() > 0) {
-            list.add(linkedList.get(0));
-            linkedList.remove(0);
+            list.add(linkedList.poll());
             number--;
         }
-        return Collections.unmodifiableList(list);
+        return list;
     }
 
     @Override
