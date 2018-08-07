@@ -1,15 +1,12 @@
 package in.nimbo.isDoing.searchEngine.crawler.interfaces;
 
 import java.net.URL;
-import java.util.Map;
 import java.util.Set;
 
 public interface Page {
     void parse();
 
     String getBody();
-
-    Map<String, String> getHeaders();
 
     URL getUrl();
 

@@ -1,5 +1,15 @@
 package in.nimbo.isDoing.searchEngine.crawler;
 
+import com.google.common.base.Optional;
+import com.optimaize.langdetect.LanguageDetector;
+import com.optimaize.langdetect.LanguageDetectorBuilder;
+import com.optimaize.langdetect.i18n.LdLocale;
+import com.optimaize.langdetect.ngram.NgramExtractors;
+import com.optimaize.langdetect.profiles.LanguageProfile;
+import com.optimaize.langdetect.profiles.LanguageProfileReader;
+import com.optimaize.langdetect.text.CommonTextObjectFactories;
+import com.optimaize.langdetect.text.TextObject;
+import com.optimaize.langdetect.text.TextObjectFactory;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
@@ -12,20 +22,20 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 public class WebPage implements Page {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
+    private static LanguageDetector languageDetector;
+    private static TextObjectFactory textObjectFactory;
     private String body;
-    private Map<String, String> headers;
     private Document document;
     private URL url;
 
-    public WebPage(String body, URL url, Map<String, String> headers) {
+    public WebPage(String body, URL url) {
         this.body = body;
-        this.headers = headers;
         this.url = url;
     }
 
@@ -45,11 +55,6 @@ public class WebPage implements Page {
     @Override
     public String getBody() {
         return body;
-    }
-
-    @Override
-    public Map<String, String> getHeaders() {
-        return headers;
     }
 
     @Override
@@ -113,15 +118,30 @@ public class WebPage implements Page {
 
     @Override
     public String getLang() {
-        Objects.requireNonNull(document);
-        Element html = document.selectFirst("html");
-        String lang = null;
-        if (html != null) {
-            lang = html.attr("lang");
+        if (languageDetector == null) {
+            List<LanguageProfile> languageProfiles;
+            try {
+                languageProfiles = new LanguageProfileReader().readAllBuiltIn();
+                languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
+                        .withProfiles(languageProfiles)
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-        if (lang == null)
-            return "";
+
+        if (textObjectFactory == null) {
+            textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+        }
+
+        TextObject textObject = textObjectFactory.forText(getText());
+        Optional<LdLocale> language = languageDetector.detect(textObject);
+        if (language.isPresent())
+            return language.get().getLanguage();
         else
-            return lang;
+            throw new LanguageNotDetected();
+    }
+
+    private class LanguageNotDetected extends RuntimeException {
     }
 }
