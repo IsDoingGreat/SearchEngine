@@ -1,9 +1,9 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.fetcher;
 
 import com.optimaize.langdetect.profiles.LanguageProfile;
 import com.optimaize.langdetect.profiles.LanguageProfileReader;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageFetcher;
+import in.nimbo.isDoing.searchEngine.crawler.page.Page;
+import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;

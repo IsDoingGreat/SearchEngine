@@ -1,8 +1,7 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.page_crawler;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageCrawler;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageCrawlerController;
+import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
+import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     controller.getURLQueue().push(url.toExternalForm());
-                    logger.trace("link is recently used {}", link);
+//                    logger.trace("link is recently used {}", link);
                     continue;
                 }
 
@@ -49,16 +48,16 @@ public class PageCrawlerImpl implements PageCrawler {
                     page.parse();
                     
                     if (!page.getLang().equals("en")) {
-                        logger.trace("link is not english {}, is {}", link,page.getLang());
+//                        logger.trace("link is not english {}, is {}", link,page.getLang());
                         continue;
                     }
                 } catch (Exception e) {
-                    logger.trace("page fetch exception  : " + link, e);
+//                    logger.trace("page fetch exception  : " + link, e);
                     continue;
                 }
 
                 Set<String> outgoingUrls = page.getOutgoingUrls();
-                logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
+//                logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
                 for (String outgoingUrl : outgoingUrls) {
                     controller.getURLQueue().push(outgoingUrl);
                 }

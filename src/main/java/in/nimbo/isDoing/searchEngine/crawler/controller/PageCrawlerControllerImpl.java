@@ -1,6 +1,14 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.controller;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.*;
+import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.DuplicateChecker;
+import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.MockingDuplicateChecker;
+import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcher;
+import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcherImpl;
+import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
+import in.nimbo.isDoing.searchEngine.crawler.lru.LRULinkHashMapImpl;
+import in.nimbo.isDoing.searchEngine.crawler.presister.MockingPagePersister;
+import in.nimbo.isDoing.searchEngine.crawler.presister.PagePersister;
+import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

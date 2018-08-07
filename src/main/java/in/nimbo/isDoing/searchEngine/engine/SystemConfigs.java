@@ -4,7 +4,10 @@ import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public class SystemConfigs implements Configs {
@@ -12,7 +15,8 @@ public class SystemConfigs implements Configs {
     private Properties configs = new Properties();
 
     public SystemConfigs() throws IOException {
-        configs.load(getClass().getResourceAsStream("/configs.properties"));
+        Path configPath = Paths.get("./configs.properties");
+        configs.load(new FileInputStream(configPath.toFile()));
         logger.info("config file loaded {}", configs);
         configs.setProperty("exitRequested", "false");
     }

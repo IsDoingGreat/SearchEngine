@@ -1,7 +1,9 @@
 package in.nimbo.isDoing.searchEngine.crawler;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.CrawlScheduler;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.URLQueue;
+import in.nimbo.isDoing.searchEngine.crawler.scheduler.CrawlScheduler;
+import in.nimbo.isDoing.searchEngine.crawler.scheduler.CrawlSchedulerImpl;
+import in.nimbo.isDoing.searchEngine.crawler.urlqueue.KafkaUrlQueue;
+import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
@@ -22,7 +24,7 @@ public class CrawlerService implements Service {
 
     public CrawlerService() throws IOException {
         logger.info("Creating Crawler Service...");
-        urlQueue = new ArrayListURLQueueImpl();
+        urlQueue = new KafkaUrlQueue();
         scheduler = new CrawlSchedulerImpl(urlQueue);
         logger.info("Crawler Service Created");
     }

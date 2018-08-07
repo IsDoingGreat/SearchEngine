@@ -1,6 +1,5 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.urlqueue;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaConsumerController;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;

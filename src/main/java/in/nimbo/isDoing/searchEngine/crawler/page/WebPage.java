@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.page;
 
 import com.google.common.base.Optional;
 import com.optimaize.langdetect.LanguageDetector;
@@ -12,7 +12,6 @@ import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

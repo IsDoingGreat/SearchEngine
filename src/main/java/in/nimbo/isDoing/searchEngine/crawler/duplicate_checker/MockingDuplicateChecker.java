@@ -1,6 +1,5 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.DuplicateChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

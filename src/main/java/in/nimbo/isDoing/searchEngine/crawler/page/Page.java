@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.crawler.interfaces;
+package in.nimbo.isDoing.searchEngine.crawler.page;
 
 import java.net.URL;
 import java.util.Set;

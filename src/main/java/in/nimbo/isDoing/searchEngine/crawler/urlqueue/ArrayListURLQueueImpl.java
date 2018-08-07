@@ -1,6 +1,5 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.urlqueue;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.URLQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,7 +1,6 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.presister;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PagePersister;
+import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

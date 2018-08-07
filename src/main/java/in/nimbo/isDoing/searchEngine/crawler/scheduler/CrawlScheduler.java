@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.crawler.interfaces;
+package in.nimbo.isDoing.searchEngine.crawler.scheduler;
 
 public interface CrawlScheduler extends Runnable {
     void stop();

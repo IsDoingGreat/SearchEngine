@@ -1,8 +1,9 @@
-package in.nimbo.isDoing.searchEngine.crawler;
+package in.nimbo.isDoing.searchEngine.crawler.scheduler;
 
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.CrawlScheduler;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageCrawlerController;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.URLQueue;
+import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
+import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerControllerImpl;
+import in.nimbo.isDoing.searchEngine.crawler.page_crawler.PageCrawlerImpl;
+import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     private Thread counterThread;
 
     public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
-        logger.info("Creating CrawlScheduler");
+        logger.info("Creating scheduler");
 
         maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
                 String.valueOf(DEFAULT_MAX_ACTIVE_CRAWLERS)));
@@ -56,7 +57,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
                 0L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(), new ThreadFactory());
 
-        logger.info("CrawlScheduler Created");
+        logger.info("scheduler Created");
     }
 
     public void startCrawling() {
@@ -65,7 +66,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
         startDate = new Date();
 
-        logger.info("Starting CrawlScheduler at {}", startDate);
+        logger.info("Starting scheduler at {}", startDate);
 
         int numberOfThreads = 0;
         while (numberOfThreads < maxActiveCrawlers) {
@@ -96,8 +97,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             Thread.sleep(1500);
             while (!exitRequested && !Thread.interrupted()) {
                 List<String> urlList = urlQueue.pop(queuePopSize);
-//                logger.trace("{} urls poped from URLQueue", urlList.size());
-//                logger.trace("{} urls in Blocking Queue", queue.size());
+                logger.trace("{} urls poped from URLQueue", urlList.size());
+                logger.trace("{} urls in Blocking Queue", queue.size());
                 for (String url : urlList) {
                     queue.put(url);
                 }

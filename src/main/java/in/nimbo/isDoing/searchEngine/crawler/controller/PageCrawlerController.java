@@ -1,4 +1,10 @@
-package in.nimbo.isDoing.searchEngine.crawler.interfaces;
+package in.nimbo.isDoing.searchEngine.crawler.controller;
+
+import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.DuplicateChecker;
+import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcher;
+import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
+import in.nimbo.isDoing.searchEngine.crawler.presister.PagePersister;
+import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 
 import java.util.concurrent.BlockingQueue;
 

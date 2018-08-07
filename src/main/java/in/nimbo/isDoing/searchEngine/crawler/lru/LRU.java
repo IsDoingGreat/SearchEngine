@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.crawler.interfaces;
+package in.nimbo.isDoing.searchEngine.crawler.lru;
 
 public interface LRU {
     boolean isRecentlyUsed(String url);

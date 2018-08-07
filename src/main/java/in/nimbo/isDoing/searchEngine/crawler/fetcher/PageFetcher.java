@@ -1,4 +1,6 @@
-package in.nimbo.isDoing.searchEngine.crawler.interfaces;
+package in.nimbo.isDoing.searchEngine.crawler.fetcher;
+
+import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 
 import java.io.IOException;
 import java.net.URL;
