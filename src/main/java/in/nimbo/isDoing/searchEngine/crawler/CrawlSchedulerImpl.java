@@ -7,6 +7,7 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -16,10 +17,12 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     private final static Logger logger = LoggerFactory.getLogger(CrawlSchedulerImpl.class);
     private static final int DEFAULT_MAX_ACTIVE_CRAWLERS = 100;
     private static final int DEFAULT_QUEUE_SIZE = 100;
+    private static final int DEFAULT_QUEUE_POP_SIZE = 100;
 
 
     private int maxActiveCrawlers;
     private int queueSize;
+    private int queuePopSize;
     private PageCrawlerController controller;
     private ExecutorService executor;
     private Date startDate = null;
@@ -28,7 +31,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     private URLQueue urlQueue;
     private Thread counterThread;
 
-    public CrawlSchedulerImpl(URLQueue urlQueue) {
+    public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
         logger.info("Creating CrawlScheduler");
 
         maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
@@ -39,6 +42,11 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
         queueSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queueSize",
                 String.valueOf(DEFAULT_QUEUE_SIZE)));
         logger.info("Using queueSize={}", queueSize);
+
+        queuePopSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queuePopSize",
+                String.valueOf(DEFAULT_QUEUE_POP_SIZE)));
+
+        logger.info("Using queuePopSize={}", queueSize);
 
         queue = new LinkedBlockingQueue<>(queueSize);
         this.controller = new PageCrawlerControllerImpl(queue, urlQueue);
@@ -85,9 +93,11 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
 
         try {
+            Thread.sleep(1500);
             while (!exitRequested && !Thread.interrupted()) {
-                List<String> urlList = urlQueue.pop(queueSize);
-
+                List<String> urlList = urlQueue.pop(queuePopSize);
+//                logger.trace("{} urls poped from URLQueue", urlList.size());
+//                logger.trace("{} urls in Blocking Queue", queue.size());
                 for (String url : urlList) {
                     queue.put(url);
                 }

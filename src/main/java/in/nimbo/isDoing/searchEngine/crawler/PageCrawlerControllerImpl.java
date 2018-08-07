@@ -4,6 +4,7 @@ import in.nimbo.isDoing.searchEngine.crawler.interfaces.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,13 +28,13 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
         this.duplicateChecker = duplicateChecker;
     }
 
-    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue) {
+    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue) throws IOException {
         this(
                 queue,
                 urlQueue,
                 new PageFetcherImpl(),
                 new LRULinkHashMapImpl(),
-                new ElasticSearchPagePersister(),
+                new MockingPagePersister(),
                 new MockingDuplicateChecker()
         );
         logger.info("PageCrawlerController Created");

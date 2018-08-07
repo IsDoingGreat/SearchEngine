@@ -43,10 +43,15 @@ public class Engine {
     }
 
     public void startService(String name) {
-        if (name.equals("crawler"))
-            startService(new CrawlerService());
-        else
-            output.show(Output.Type.ERROR, "Service Not Found");
+        try {
+            if (name.equals("crawler"))
+                startService(new CrawlerService());
+            else
+                output.show(Output.Type.ERROR, "Service Not Found");
+
+        } catch (Exception e) {
+            output.show(Output.Type.ERROR, e.toString());
+        }
     }
 
     public void startService(Service service) {
@@ -73,7 +78,7 @@ public class Engine {
             services.get(serviceName).stop();
             services.remove(serviceName);
         } catch (Exception e) {
-            getOutput().show(Output.Type.ERROR,"Error During Stopping Service." +
+            getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +
                     "Please See Logs");
         }
     }

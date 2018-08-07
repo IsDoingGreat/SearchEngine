@@ -3,14 +3,12 @@ package in.nimbo.isDoing.searchEngine.crawler;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageCrawler;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageCrawlerController;
-import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageFetcher;
-import org.jsoup.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 
 public class PageCrawlerImpl implements PageCrawler {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerImpl.class);
@@ -31,39 +29,44 @@ public class PageCrawlerImpl implements PageCrawler {
                 try {
                     url = new URL(link);
                 } catch (MalformedURLException e) {
+                    logger.trace("link is not valid {}", link);
                     continue;
                 }
 
                 if (controller.getDuplicateChecker().isDuplicate(link)) {
-                    controller.getURLQueue().push(url.toExternalForm());
-                }
-
-                if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     continue;
                 }
 
-                controller.getLRU().setUsed(url.getHost());
+                if (controller.getLRU().isRecentlyUsed(url.getHost())) {
+                    controller.getURLQueue().push(url.toExternalForm());
+                    logger.trace("link is recently used {}", link);
+                    continue;
+                }
 
                 Page page;
                 try {
                     page = controller.getFetcher().fetch(url);
                     page.parse();
+                    
+                    if (!page.getLang().equals("en")) {
+                        logger.trace("link is not english {}, is {}", link,page.getLang());
+                        continue;
+                    }
                 } catch (Exception e) {
+                    logger.trace("page fetch exception  : " + link, e);
                     continue;
                 }
 
-                if (!page.getLang().startsWith("en")) {
-                    continue;
-                }
-
-                for (String outgoingUrl : page.getOutgoingUrls()) {
+                Set<String> outgoingUrls = page.getOutgoingUrls();
+                logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
+                for (String outgoingUrl : outgoingUrls) {
                     controller.getURLQueue().push(outgoingUrl);
                 }
 
                 controller.getPersister().insert(page);
+
+                controller.getLRU().setUsed(url.getHost());
                 controller.newSiteCrawled();
-
-
             }
         } catch (Exception e) {
             logger.error("PageCrawler Stopped With Error {}", e);

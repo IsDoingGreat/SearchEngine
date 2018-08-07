@@ -20,9 +20,9 @@ public class CrawlerService implements Service {
     private Thread schedulerThread;
     private URLQueue urlQueue;
 
-    public CrawlerService() {
+    public CrawlerService() throws IOException {
         logger.info("Creating Crawler Service...");
-        urlQueue = new KafkaUrlQueue();
+        urlQueue = new ArrayListURLQueueImpl();
         scheduler = new CrawlSchedulerImpl(urlQueue);
         logger.info("Crawler Service Created");
     }
@@ -51,18 +51,18 @@ public class CrawlerService implements Service {
     }
 
     private void initSeeds() {
-        logger.info("loading Seeds...");
         try {
             Path seedLock = Paths.get("./seed.lock");
             Path seedFile = Paths.get("./seeds.txt");
-            if (!Files.exists(seedLock) && Files.exists(seedFile)) {
-                Files.createFile(seedLock);
+            if (/*!Files.exists(seedLock) &&*/ Files.exists(seedFile)) {
+                logger.info("loading Seeds...");
+//                Files.createFile(seedLock);
                 List<String> lines = Files.readAllLines(seedFile);
                 for (String line : lines) {
                     urlQueue.push(line);
                 }
+                logger.info("Seeds loaded");
             }
-            logger.info("Seeds loaded");
         } catch (IOException e) {
             e.printStackTrace();
         }

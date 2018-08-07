@@ -10,7 +10,7 @@ public class MockingPagePersister implements PagePersister {
 
     @Override
     public void insert(Page page) {
-        logger.info("Page Persisted {}",page);
+//        logger.info("Page Persisted {}",page);
     }
 
     @Override

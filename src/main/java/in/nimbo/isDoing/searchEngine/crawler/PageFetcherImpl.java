@@ -1,5 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler;
 
+import com.optimaize.langdetect.profiles.LanguageProfile;
+import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.Page;
 import in.nimbo.isDoing.searchEngine.crawler.interfaces.PageFetcher;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
@@ -10,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 public class PageFetcherImpl implements PageFetcher {
     private final static Logger logger = LoggerFactory.getLogger(PageFetcherImpl.class);
@@ -20,7 +23,7 @@ public class PageFetcherImpl implements PageFetcher {
     private boolean followRedirects;
     private String userAgent;
 
-    public PageFetcherImpl() {
+    public PageFetcherImpl() throws IOException {
         timeout = Integer.parseInt(Engine.getConfigs().get("crawler.pageFetcher.timeout", TIMEOUT));
         followRedirects = Boolean.parseBoolean(Engine.getConfigs().get("crawler.pageFetcher.followRedirects", FOLLOW_REDIRECTS));
         userAgent = Engine.getConfigs().get("crawler.pageFetcher.userAgent", USER_AGENT);
@@ -28,6 +31,8 @@ public class PageFetcherImpl implements PageFetcher {
                 "\ttimeout= " + timeout + "\n" +
                 "\tfollowRedirects= " + followRedirects + "\n" +
                 "\tuserAgent= " + userAgent + "\n");
+
+        List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
     }
 
     @Override
@@ -47,7 +52,8 @@ public class PageFetcherImpl implements PageFetcher {
             throw new NotSupportedContentTypeException(response.contentType() + "Not Supported");
 
 
-        return new WebPage(response.body(), url, response.headers());
+
+        return new WebPage(response.body(), url);
     }
 
     @Override
