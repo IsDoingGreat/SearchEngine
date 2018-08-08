@@ -4,6 +4,7 @@ import in.nimbo.isDoing.searchEngine.crawler.CrawlerService;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
+import in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,10 +45,17 @@ public class Engine {
 
     public void startService(String name) {
         try {
-            if (name.equals("crawler"))
-                startService(new CrawlerService());
-            else
-                output.show(Output.Type.ERROR, "Service Not Found");
+            switch (name) {
+                case "crawler":
+                    startService(new CrawlerService());
+                    break;
+                case "twitterReader":
+                    startService(new TwitterReaderService());
+                    break;
+                default:
+                    output.show(Output.Type.ERROR, "Service Not Found");
+                    break;
+            }
 
         } catch (Exception e) {
             output.show(Output.Type.ERROR, e.toString());
