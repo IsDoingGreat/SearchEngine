@@ -1,5 +1,6 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
 
+import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ public class TwitterReaderService implements Service {
     @Override
     public void start() {
         logger.info("Starting TwitterReader Service...");
+        Engine.getOutput().show("Starting TwitterReader Service...");
         try {
             twitterReader.getTweets();
         } catch (InterruptedException e) {
@@ -31,6 +33,7 @@ public class TwitterReaderService implements Service {
     public void stop() {
         twitterReader.stopGetTweets();
         logger.info("TwitterReader Service Stopped");
+        Engine.getOutput().show("TwitterReader Service Stopped");
     }
 
     @Override
