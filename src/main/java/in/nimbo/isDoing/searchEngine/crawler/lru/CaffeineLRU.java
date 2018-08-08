@@ -39,6 +39,7 @@ public class CaffeineLRU implements LRU {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping Caffeine LRU... ");
         cache.cleanUp();
     }
 }

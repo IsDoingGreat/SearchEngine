@@ -74,6 +74,8 @@ public class PageCrawlerImpl implements PageCrawler {
             }
         } catch (Exception e) {
             logger.error("PageCrawler Stopped With Error {}", e);
+            return;
         }
+        logger.info("normally Exiting Thread {}", Thread.currentThread().getName());
     }
 }

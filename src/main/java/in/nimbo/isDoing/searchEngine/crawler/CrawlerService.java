@@ -51,7 +51,9 @@ public class CrawlerService implements Service {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping CrawlerService... ");
         scheduler.stop();
+        Engine.getOutput().show("Interrupting Scheduler Thread... ");
         schedulerThread.interrupt();
     }
 

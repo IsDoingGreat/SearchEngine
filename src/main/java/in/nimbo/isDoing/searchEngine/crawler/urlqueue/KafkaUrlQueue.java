@@ -58,7 +58,10 @@ public class KafkaUrlQueue implements URLQueue {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping Kafka consumerController... ");
         consumerController.stop();
+
+        Engine.getOutput().show("Stopping Kafka producerController... ");
         producerController.stop();
     }
 }

@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.crawler.presister;
 
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
+import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.elasticsearch.action.index.IndexRequest;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class ElasticSearchPagePersister implements PagePersister {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping Elastic Persistor... ");
         try {
             ElasticClient.getClient().close();
         } catch (IOException e) {

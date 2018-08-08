@@ -107,9 +107,23 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
     @Override
     public void stop() {
-        exitRequested = true;
-        executor.shutdown();
-        controller.stop();
+        try {
+            exitRequested = true;
+            Engine.getOutput().show("Waiting for Fetcher Threads To Stop (At Most 10 Seconds)... ");
+            executor.shutdown();
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+            Engine.getOutput().show("Stopping Controller... ");
+            controller.stop();
+
+            Engine.getOutput().show("Stopping URLQueue... ");
+            urlQueue.stop();
+
+            Engine.getOutput().show("Intercepting Counter Thread... ");
+            counterThread.interrupt();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static class ThreadFactory implements java.util.concurrent.ThreadFactory {

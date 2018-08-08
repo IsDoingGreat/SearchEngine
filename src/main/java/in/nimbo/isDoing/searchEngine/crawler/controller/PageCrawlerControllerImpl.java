@@ -91,8 +91,5 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
 
         if (duplicateChecker != null)
             duplicateChecker.stop();
-
-        if (urlQueue != null)
-            urlQueue.stop();
     }
 }
