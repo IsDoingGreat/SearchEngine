@@ -13,7 +13,6 @@ public class ElasticSearchPagePersister implements PagePersister {
         String text = page.getExtractedText();
         IndexRequest indexRequest = new IndexRequest("posts", "_doc")
                 .source("title", page.getTitle(),
-                        "desc", page.getDescription(),
                         "text", text.isEmpty() ? page.getText() : text,
                         "link", page.getUrl().toExternalForm());
 
