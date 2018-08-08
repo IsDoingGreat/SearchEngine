@@ -1,5 +1,6 @@
 package in.nimbo.isDoing.searchEngine.crawler.page_crawler;
 
+import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import org.slf4j.Logger;
@@ -20,7 +21,6 @@ public class PageCrawlerImpl implements PageCrawler {
     @Override
     public void run() {
         try {
-            controller.addNewAliveThread();
             while (!Thread.interrupted()) {
                 String link = controller.getQueue().take();
                 URL url;
@@ -29,15 +29,18 @@ public class PageCrawlerImpl implements PageCrawler {
                     url = new URL(link);
                 } catch (MalformedURLException e) {
                     logger.trace("link is not valid {}", link);
+                    controller.getCounter().increment(Counter.States.INVALID_LINK);
                     continue;
                 }
 
                 if (controller.getDuplicateChecker().isDuplicate(link)) {
+                    controller.getCounter().increment(Counter.States.DUPLICATE);
                     continue;
                 }
 
                 if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     controller.getURLQueue().push(url.toExternalForm());
+                    controller.getCounter().increment(Counter.States.LRU_REJECTED);
 //                    logger.trace("link is recently used {}", link);
                     continue;
                 }
@@ -45,12 +48,13 @@ public class PageCrawlerImpl implements PageCrawler {
                 Page page;
                 try {
                     controller.getLRU().setUsed(url.getHost());
-                    
+
                     page = controller.getFetcher().fetch(url);
                     page.parse();
 
                     if (!page.getLang().equals("en")) {
 //                        logger.trace("link is not english {}, is {}", link,page.getLang());
+                        controller.getCounter().increment(Counter.States.INVALID_LANG);
                         continue;
                     }
                 } catch (Exception e) {
@@ -66,11 +70,10 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 controller.getPersister().insert(page);
 
-                controller.newSiteCrawled();
+                controller.getCounter().increment(Counter.States.SUCCESSFUL);
             }
         } catch (Exception e) {
             logger.error("PageCrawler Stopped With Error {}", e);
-            controller.oneThreadDied();
         }
     }
 }

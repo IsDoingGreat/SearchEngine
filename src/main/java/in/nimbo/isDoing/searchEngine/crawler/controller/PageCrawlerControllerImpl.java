@@ -14,26 +14,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PageCrawlerControllerImpl implements PageCrawlerController {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerControllerImpl.class);
+    private Counter counter;
     private PageFetcher fetcher;
     private LRU lru;
     private BlockingQueue<String> queue;
     private PagePersister persister;
     private DuplicateChecker duplicateChecker;
     private URLQueue urlQueue;
-    private AtomicInteger totalCrawls = new AtomicInteger(0);
-    private AtomicInteger aliveThreads = new AtomicInteger(0);
 
-    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue, PageFetcher fetcher, LRU lru, PagePersister persister, DuplicateChecker duplicateChecker) {
+    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue, PageFetcher fetcher, LRU lru, PagePersister persister, DuplicateChecker duplicateChecker, Counter counter) {
         this.fetcher = fetcher;
         this.urlQueue = urlQueue;
         this.lru = lru;
         this.queue = queue;
         this.persister = persister;
         this.duplicateChecker = duplicateChecker;
+        this.counter = counter;
     }
 
     public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue) throws IOException {
@@ -43,7 +42,8 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
                 new PageFetcherImpl(),
                 new CaffeineLRU(),
                 new MockingPagePersister(),
-                new MockingDuplicateChecker()
+                new MockingDuplicateChecker(),
+                new Counter()
         );
         logger.info("PageCrawlerController Created");
     }
@@ -73,29 +73,10 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
     }
 
     @Override
-    public void addNewAliveThread() {
-        aliveThreads.incrementAndGet();
+    public Counter getCounter() {
+        return counter;
     }
 
-    @Override
-    public void oneThreadDied() {
-        aliveThreads.decrementAndGet();
-    }
-
-    @Override
-    public void newSiteCrawled() {
-        totalCrawls.incrementAndGet();
-    }
-
-    @Override
-    public int getAliveThreads() {
-        return aliveThreads.get();
-    }
-
-    @Override
-    public int getTotalCrawls() {
-        return totalCrawls.get();
-    }
 
     @Override
     public void stop() {

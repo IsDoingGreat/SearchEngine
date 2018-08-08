@@ -6,6 +6,7 @@ import in.nimbo.isDoing.searchEngine.crawler.page.LanguageDetector;
 import in.nimbo.isDoing.searchEngine.crawler.page_crawler.PageCrawlerImpl;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,21 +79,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             numberOfThreads++;
         }
 
-
-        counterThread = new Thread(() -> {
-            try {
-                int lastCount = 0;
-                while (!Thread.interrupted()) {
-                    Thread.sleep(1000);
-                    int totalCrawls = controller.getTotalCrawls();
-                    logger.info("Crawled Per Second:" + (totalCrawls - lastCount));
-                    lastCount = totalCrawls;
-                }
-
-            } catch (InterruptedException e) {
-                logger.info("counterThread stopped");
-            }
-        });
+        counterThread = new Thread(controller.getCounter());
+        counterThread.setName("CounterThread");
         counterThread.setDaemon(true);
 
         try {
@@ -120,7 +108,6 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
     @Override
     public void stop() {
         exitRequested = true;
-        counterThread.interrupt();
         executor.shutdown();
         controller.stop();
     }
@@ -141,7 +128,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
         }
 
         @Override
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@NotNull Runnable r) {
             Thread t = new Thread(group, r,
                     namePrefix + threadNumber.getAndIncrement(),
                     0);

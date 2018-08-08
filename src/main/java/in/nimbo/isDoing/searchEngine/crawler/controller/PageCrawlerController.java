@@ -21,15 +21,8 @@ public interface PageCrawlerController {
 
     URLQueue getURLQueue();
 
-    void addNewAliveThread();
 
-    void oneThreadDied();
-
-    void newSiteCrawled();
-
-    int getAliveThreads();
-
-    int getTotalCrawls();
+    Counter getCounter();
 
     void stop();
 }
