@@ -1,15 +1,5 @@
 package in.nimbo.isDoing.searchEngine.crawler.page;
 
-import com.google.common.base.Optional;
-import com.optimaize.langdetect.LanguageDetector;
-import com.optimaize.langdetect.LanguageDetectorBuilder;
-import com.optimaize.langdetect.i18n.LdLocale;
-import com.optimaize.langdetect.ngram.NgramExtractors;
-import com.optimaize.langdetect.profiles.LanguageProfile;
-import com.optimaize.langdetect.profiles.LanguageProfileReader;
-import com.optimaize.langdetect.text.CommonTextObjectFactories;
-import com.optimaize.langdetect.text.TextObject;
-import com.optimaize.langdetect.text.TextObjectFactory;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import org.jsoup.Jsoup;
@@ -21,14 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 public class WebPage implements Page {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
-    private static LanguageDetector languageDetector;
-    private static TextObjectFactory textObjectFactory;
     private String body;
     private Document document;
     private URL url;
@@ -115,32 +102,12 @@ public class WebPage implements Page {
         return urls;
     }
 
+    /**
+     * @return language code
+     * @throws in.nimbo.isDoing.searchEngine.crawler.page.LanguageDetector.LanguageNotDetected if language is not detected
+     */
     @Override
     public String getLang() {
-        if (languageDetector == null) {
-            List<LanguageProfile> languageProfiles;
-            try {
-                languageProfiles = new LanguageProfileReader().readAllBuiltIn();
-                languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
-                        .withProfiles(languageProfiles)
-                        .build();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        if (textObjectFactory == null) {
-            textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
-        }
-
-        TextObject textObject = textObjectFactory.forText(getText());
-        Optional<LdLocale> language = languageDetector.detect(textObject);
-        if (language.isPresent())
-            return language.get().getLanguage();
-        else
-            throw new LanguageNotDetected();
-    }
-
-    private class LanguageNotDetected extends RuntimeException {
+        return LanguageDetector.getInstance().detectLanguage(getText());
     }
 }

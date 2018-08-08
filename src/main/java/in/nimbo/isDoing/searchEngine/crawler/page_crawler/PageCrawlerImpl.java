@@ -44,9 +44,11 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 Page page;
                 try {
+                    controller.getLRU().setUsed(url.getHost());
+                    
                     page = controller.getFetcher().fetch(url);
                     page.parse();
-                    
+
                     if (!page.getLang().equals("en")) {
 //                        logger.trace("link is not english {}, is {}", link,page.getLang());
                         continue;
@@ -64,7 +66,6 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 controller.getPersister().insert(page);
 
-                controller.getLRU().setUsed(url.getHost());
                 controller.newSiteCrawled();
             }
         } catch (Exception e) {

@@ -4,12 +4,15 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaConsumerController;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class KafkaUrlQueue implements URLQueue {
+    private final static Logger logger = LoggerFactory.getLogger(KafkaUrlQueue.class);
     private KafkaConsumerController consumerController;
     private KafkaProducerController producerController;
     private String topicName;
@@ -19,6 +22,8 @@ public class KafkaUrlQueue implements URLQueue {
     private String producerClientId;
 
     public KafkaUrlQueue() {
+        logger.info("Creating Kafka URLQueue...");
+        Engine.getOutput().show("Creating Kafka URLQueue...");
 
         // TODO: 8/5/18 Make Defaults Constant
         topicName = Engine.getConfigs().get("crawler.urlQueue.kafka.topicName", "urls");

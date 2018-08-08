@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.crawler.scheduler;
 
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerControllerImpl;
+import in.nimbo.isDoing.searchEngine.crawler.page.LanguageDetector;
 import in.nimbo.isDoing.searchEngine.crawler.page_crawler.PageCrawlerImpl;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
@@ -34,6 +35,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
     public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
         logger.info("Creating scheduler");
+        Engine.getOutput().show("Creating scheduler...");
 
         maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
                 String.valueOf(DEFAULT_MAX_ACTIVE_CRAWLERS)));
@@ -52,6 +54,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
         queue = new LinkedBlockingQueue<>(queueSize);
         this.controller = new PageCrawlerControllerImpl(queue, urlQueue);
         this.urlQueue = urlQueue;
+
+        LanguageDetector.getInstance();
 
         executor = new ThreadPoolExecutor(maxActiveCrawlers, maxActiveCrawlers,
                 0L, TimeUnit.SECONDS,
@@ -90,11 +94,10 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             }
         });
         counterThread.setDaemon(true);
-        counterThread.start();
-
 
         try {
             Thread.sleep(1500);
+            counterThread.start();
             while (!exitRequested && !Thread.interrupted()) {
                 List<String> urlList = urlQueue.pop(queuePopSize);
                 logger.trace("{} urls poped from URLQueue", urlList.size());
