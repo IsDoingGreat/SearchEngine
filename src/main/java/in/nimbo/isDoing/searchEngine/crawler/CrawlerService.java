@@ -24,14 +24,17 @@ public class CrawlerService implements Service {
 
     public CrawlerService() throws IOException {
         logger.info("Creating Crawler Service...");
+        Engine.getOutput().show("Creating Crawler Service...");
         urlQueue = new KafkaUrlQueue();
         scheduler = new CrawlSchedulerImpl(urlQueue);
         logger.info("Crawler Service Created");
+        Engine.getOutput().show("Crawler Service Created");
     }
 
     @Override
     public void start() {
         logger.info("Starting Crawler Service...");
+        Engine.getOutput().show("Starting Crawler Service...");
 
         boolean initSeeds = Boolean.parseBoolean(Engine.getConfigs().get("crawler.initSeeds",
                 String.valueOf(true)));
@@ -58,6 +61,7 @@ public class CrawlerService implements Service {
             Path seedFile = Paths.get("./seeds.txt");
             if (/*!Files.exists(seedLock) &&*/ Files.exists(seedFile)) {
                 logger.info("loading Seeds...");
+                Engine.getOutput().show("loading Seeds...");
 //                Files.createFile(seedLock);
                 List<String> lines = Files.readAllLines(seedFile);
                 for (String line : lines) {

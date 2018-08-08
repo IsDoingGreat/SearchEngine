@@ -4,8 +4,8 @@ import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.DuplicateChecker;
 import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.MockingDuplicateChecker;
 import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcher;
 import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcherImpl;
+import in.nimbo.isDoing.searchEngine.crawler.lru.CaffeineLRU;
 import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
-import in.nimbo.isDoing.searchEngine.crawler.lru.LRULinkHashMapImpl;
 import in.nimbo.isDoing.searchEngine.crawler.presister.MockingPagePersister;
 import in.nimbo.isDoing.searchEngine.crawler.presister.PagePersister;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
@@ -41,7 +41,7 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
                 queue,
                 urlQueue,
                 new PageFetcherImpl(),
-                new LRULinkHashMapImpl(),
+                new CaffeineLRU(),
                 new MockingPagePersister(),
                 new MockingDuplicateChecker()
         );
