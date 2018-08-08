@@ -44,7 +44,6 @@ public class LanguageDetector {
             synchronized (MUTEX) {
                 if (instance == null) {
                     logger.info("Starting Language Detector...");
-                    Engine.getOutput().show("Starting Language Detector...");
                     instance = new LanguageDetector();
                 }
             }
