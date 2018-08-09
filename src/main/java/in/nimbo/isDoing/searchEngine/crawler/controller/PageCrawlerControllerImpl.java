@@ -6,8 +6,8 @@ import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcher;
 import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcherImpl;
 import in.nimbo.isDoing.searchEngine.crawler.lru.CaffeineLRU;
 import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
-import in.nimbo.isDoing.searchEngine.crawler.presister.MockingPagePersister;
 import in.nimbo.isDoing.searchEngine.crawler.presister.PagePersister;
+import in.nimbo.isDoing.searchEngine.crawler.presister.SeedPersistor;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
                 urlQueue,
                 new PageFetcherImpl(),
                 new CaffeineLRU(),
-                new MockingPagePersister(),
+                new SeedPersistor(),
                 new MockingDuplicateChecker(),
                 new Counter()
         );
