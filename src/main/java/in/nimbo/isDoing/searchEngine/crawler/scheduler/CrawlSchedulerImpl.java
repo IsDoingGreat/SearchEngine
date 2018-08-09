@@ -65,7 +65,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
         logger.info("scheduler Created");
     }
 
-    public void startCrawling() {
+    public void start() {
         if (startDate != null)
             throw new IllegalStateException("Scheduler Already Started");
 
@@ -102,7 +102,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
     @Override
     public void run() {
-        startCrawling();
+        start();
     }
 
     @Override
@@ -136,7 +136,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() :
                     Thread.currentThread().getThreadGroup();
-            namePrefix = "pool-" +
+            namePrefix = "fetcher-" +
                     poolNumber.getAndIncrement() +
                     "-thread-";
         }
