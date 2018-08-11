@@ -32,7 +32,9 @@ public class HBaseClient {
             HBaseAdmin.available(configuration);
             connection = ConnectionFactory.createConnection(configuration);
         } catch (IOException e) {
+            logger.warn("Error during create connection", e);
             Engine.getOutput().show(Output.Type.ERROR,e.getMessage());
+            throw new IllegalStateException(e);
         }
     }
     public static HBaseClient getInstance() {
