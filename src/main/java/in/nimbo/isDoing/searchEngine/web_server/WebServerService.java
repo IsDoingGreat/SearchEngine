@@ -3,46 +3,46 @@ package in.nimbo.isDoing.searchEngine.web_server;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
-
+import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.jetty.server.Server;
 
 import java.io.IOException;
 
 public class WebServerService implements Service {
-    private final static Logger logger = LoggerFactory.getLogger(in.nimbo.isDoing.searchEngine.web_server.WebServerService.class);
-    Server server = new Server(8080);
+    private final static Logger logger = LoggerFactory.getLogger(WebServerService.class);
+    Server server;
 
     public WebServerService() throws IOException {
-        logger.info("Creating WebServer Service...");
+        logger.info("Creating WebServerHandler Service...");
         //coding ...
-        logger.info("WebServer Service Created");
+        logger.info("WebServerHandler Service Created");
+        server = new Server(8080);
+        server.setHandler(new WebServerHandler());
     }
 
     @Override
     public void start() {
-        logger.info("Starting WebServer Service...");
-        Engine.getOutput().show("Starting WebServer Service...");
+        logger.info("Starting WebServerHandler Service...");
+        Engine.getOutput().show("Starting WebServerHandler Service...");
 
-        server.setHandler(new WebServer());
         try {
             server.start();
         } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            server.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("WebServerHandler Error", e);
+            Engine.getOutput().show("WebServerHandler Stopped...");
         }
     }
 
     @Override
     public void stop() {
-        //twitterReader.stopGetTweets();
-        logger.info("WebServer Service Stopped");
-        Engine.getOutput().show("WebServer Service Stopped");
+        try {
+            server.stop();
+            logger.info("Stopping WebServerHandler Service");
+            Engine.getOutput().show("Stopping WebServerHandler Service");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -52,6 +52,6 @@ public class WebServerService implements Service {
 
     @Override
     public String getName() {
-        return "WebServer";
+        return "webServer";
     }
 }

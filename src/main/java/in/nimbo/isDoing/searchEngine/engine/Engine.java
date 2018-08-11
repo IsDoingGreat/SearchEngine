@@ -5,6 +5,7 @@ import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService;
+import in.nimbo.isDoing.searchEngine.web_server.WebServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,9 @@ public class Engine {
                         break;
                     case "twitterReader":
                         startService(new TwitterReaderService());
+                        break;
+                    case "webServer":
+                        startService(new WebServerService());
                         break;
                     default:
                         output.show(Output.Type.ERROR, "Service Not Found");
