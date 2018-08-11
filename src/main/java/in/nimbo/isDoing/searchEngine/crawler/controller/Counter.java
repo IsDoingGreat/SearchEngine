@@ -1,11 +1,13 @@
 package in.nimbo.isDoing.searchEngine.crawler.controller;
 
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Counter implements Runnable {
+public class Counter implements Runnable, HaveStatus {
     private static final Logger logger = LoggerFactory.getLogger(Counter.class.getSimpleName());
 
     private AtomicInteger total = new AtomicInteger(0);
@@ -104,6 +106,20 @@ public class Counter implements Runnable {
         } catch (InterruptedException e) {
             logger.info("counterThread stopped");
         }
+    }
+
+    @Override
+    public Status status() {
+        Status status = new Status("Counter", "");
+
+        status.addLine("Links TOTAL :" + this.get(Counter.States.TOTAL));
+        status.addLine("Links DUPLICATE :" + this.get(Counter.States.DUPLICATE));
+        status.addLine("Links INVALID_LINK :" + this.get(Counter.States.INVALID_LINK));
+        status.addLine("Links LRU_REJECTED :" + this.get(Counter.States.LRU_REJECTED));
+        status.addLine("Links INVALID_LANG :" + this.get(Counter.States.INVALID_LANG));
+        status.addLine("Links SUCCESSFUL :" + this.get(Counter.States.SUCCESSFUL));
+        status.addLine("Links PERSISTED :" + this.get(Counter.States.PERSISTED));
+        return status;
     }
 
 

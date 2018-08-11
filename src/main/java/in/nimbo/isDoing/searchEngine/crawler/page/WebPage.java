@@ -93,7 +93,7 @@ public class WebPage implements Page {
         for (Element link : links) {
             String url = link.attr("abs:href");
 
-            if (url.isEmpty() || url.equals(externalForm))
+            if (url.contains("#") || url.contains("?utm") || url.trim().isEmpty() || url.equals(externalForm))
                 continue;
 
             urls.add(url);

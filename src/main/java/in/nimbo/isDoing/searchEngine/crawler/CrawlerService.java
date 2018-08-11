@@ -26,6 +26,7 @@ public class CrawlerService implements Service {
         logger.info("Creating Crawler Service...");
         Engine.getOutput().show("Creating Crawler Service...");
         urlQueue = new KafkaUrlQueue();
+//        urlQueue = new ArrayListURLQueueImpl();
         scheduler = new CrawlSchedulerImpl(urlQueue);
         logger.info("Crawler Service Created");
         Engine.getOutput().show("Crawler Service Created");
@@ -53,6 +54,10 @@ public class CrawlerService implements Service {
     public void stop() {
         Engine.getOutput().show("Stopping CrawlerService... ");
         scheduler.stop();
+
+        Engine.getOutput().show("Stopping URLQueue... ");
+        urlQueue.stop();
+
         Engine.getOutput().show("Interrupting Scheduler Thread... ");
         schedulerThread.interrupt();
     }
@@ -78,7 +83,9 @@ public class CrawlerService implements Service {
 
     @Override
     public Status status() {
-        return null;
+        Status status = new Status("Crawler Service","A Service To Crawling The Web");
+        status.addSubSections(Status.get(scheduler));
+        return status;
     }
 
     @Override
