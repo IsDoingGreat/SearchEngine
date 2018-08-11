@@ -1,14 +1,19 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister;
 
+import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
+import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static in.nimbo.isDoing.searchEngine.pipeline.Output.Type.ERROR;
 
 public class PagePersisterImpl implements PagePersister {
     private final static Logger logger = LoggerFactory.getLogger(PagePersisterImpl.class);
@@ -21,10 +26,13 @@ public class PagePersisterImpl implements PagePersister {
     private int persisterThreadNumber;
     private int pageQueueSize;
     private Runnable[] persisterThreads;
+    private Counter counter;
 
-    public PagePersisterImpl() {
+    public PagePersisterImpl(Counter counter) {
         Engine.getOutput().show("Creating PagePersister...");
         logger.info("Creating PagePersister...");
+
+        this.counter = counter;
 
         persisterThreadNumber = Integer.parseInt(Engine.getConfigs().get("crawler.persister.persisterThreadNumber",
                 String.valueOf(DEFAULT_THREAD_NUMBER)));
@@ -42,7 +50,7 @@ public class PagePersisterImpl implements PagePersister {
         //Initializing Runnables To See If There is Any Error!!
         persisterThreads = new Runnable[persisterThreadNumber];
         for (int i = 0; i < persisterThreadNumber; i++) {
-            persisterThreads[i] = new PersisterThread(pageQueue, new ElasticDBPersister());
+            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister());
         }
         logger.info("PagePersister Created...");
     }
@@ -50,21 +58,32 @@ public class PagePersisterImpl implements PagePersister {
     @Override
     public void stop() {
         Engine.getOutput().show("Waiting For Persister Threads To Stop... (At Most 10 Seconds)");
-        persisterExecutor.shutdown();
+        persisterExecutor.shutdownNow();
         try {
             persisterExecutor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
+        }
+
+        try {
+            ElasticClient.getClient().close();
+        } catch (IOException e) {
+            logger.error("Closing Elastic With Error", e);
+            Engine.getOutput().show(ERROR,"Closing Elastic With Error");
         }
     }
 
     @Override
     public void start() {
-        Engine.getOutput().show("Starting PagePersister...");
         logger.info("Starting PagePersister...");
 
         for (int i = 0; i < persisterThreadNumber; i++) {
             persisterExecutor.submit(persisterThreads[i]);
         }
+    }
+
+    @Override
+    public Counter getCounter() {
+        return counter;
     }
 
     @Override

@@ -9,13 +9,15 @@ import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
 import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersister;
 import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersisterImpl;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
-public class PageCrawlerControllerImpl implements PageCrawlerController {
+public class PageCrawlerControllerImpl implements PageCrawlerController, HaveStatus {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerControllerImpl.class);
     private Counter counter;
     private PageFetcher fetcher;
@@ -25,25 +27,37 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
     private DuplicateChecker duplicateChecker;
     private URLQueue urlQueue;
 
-    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue, PageFetcher fetcher, LRU lru, PagePersister persister, DuplicateChecker duplicateChecker, Counter counter) {
+    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue,
+                                     PageFetcher fetcher, LRU lru,
+                                     PagePersister persister, DuplicateChecker duplicateChecker, Counter counter) {
         this.fetcher = fetcher;
         this.urlQueue = urlQueue;
         this.lru = lru;
         this.queue = queue;
+        this.counter = counter;
         this.persister = persister;
         this.duplicateChecker = duplicateChecker;
-        this.counter = counter;
+        logger.info("PageCrawlerController Created");
     }
 
     public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue) throws IOException {
         this(
                 queue,
                 urlQueue,
+                new Counter()
+        );
+        logger.info("PageCrawlerController Created");
+    }
+
+    public PageCrawlerControllerImpl(BlockingQueue<String> queue, URLQueue urlQueue, Counter counter) throws IOException {
+        this(
+                queue,
+                urlQueue,
                 new PageFetcherImpl(),
                 new CaffeineLRU(),
-                new PagePersisterImpl(),
+                new PagePersisterImpl(counter),
                 new MockingDuplicateChecker(),
-                new Counter()
+                counter
         );
         logger.info("PageCrawlerController Created");
     }
@@ -91,5 +105,17 @@ public class PageCrawlerControllerImpl implements PageCrawlerController {
 
         if (duplicateChecker != null)
             duplicateChecker.stop();
+    }
+
+    @Override
+    public Status status() {
+        Status status = new Status("Crawler Controller", "The Heart Of Fetchers");
+        status.addSubSections(Status.get(counter));
+        status.addSubSections(Status.get(fetcher));
+        status.addSubSections(Status.get(lru));
+        status.addSubSections(Status.get(persister));
+        status.addSubSections(Status.get(duplicateChecker));
+        status.addSubSections(Status.get(urlQueue));
+        return status;
     }
 }

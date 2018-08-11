@@ -41,7 +41,7 @@ public class PageCrawlerImpl implements PageCrawler {
                 if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     controller.getURLQueue().push(url.toExternalForm());
                     controller.getCounter().increment(Counter.States.LRU_REJECTED);
-//                    logger.trace("link is recently used {}", link);
+                    //logger.trace("link is recently used {}", link);
                     continue;
                 }
 
@@ -53,17 +53,17 @@ public class PageCrawlerImpl implements PageCrawler {
                     page.parse();
 
                     if (!page.getLang().equals("en")) {
-//                        logger.trace("link is not english {}, is {}", link,page.getLang());
+                        //logger.trace("link is not english {}, is {}", link,page.getLang());
                         controller.getCounter().increment(Counter.States.INVALID_LANG);
                         continue;
                     }
                 } catch (Exception e) {
-//                    logger.trace("page fetch exception  : " + link, e);
+                    //logger.trace("page fetch exception  : " + link, e);
                     continue;
                 }
 
                 Set<String> outgoingUrls = page.getOutgoingUrls();
-//                logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
+                //logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
                 for (String outgoingUrl : outgoingUrls) {
                     controller.getURLQueue().push(outgoingUrl);
                 }

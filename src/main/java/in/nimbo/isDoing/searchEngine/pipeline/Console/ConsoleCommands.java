@@ -20,4 +20,9 @@ public class ConsoleCommands {
     public void stop(@Param(name = "Service Name") String serviceName) {
         engine.stopService(serviceName);
     }
+
+    @Command
+    public void status(@Param(name = "Service Name") String serviceName) {
+        engine.status(serviceName);
+    }
 }

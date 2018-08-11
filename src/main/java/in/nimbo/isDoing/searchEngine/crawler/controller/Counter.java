@@ -1,11 +1,13 @@
 package in.nimbo.isDoing.searchEngine.crawler.controller;
 
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Counter implements Runnable {
+public class Counter implements Runnable, HaveStatus {
     private static final Logger logger = LoggerFactory.getLogger(Counter.class.getSimpleName());
 
     private AtomicInteger total = new AtomicInteger(0);
@@ -14,6 +16,7 @@ public class Counter implements Runnable {
     private AtomicInteger invalidLang = new AtomicInteger(0);
     private AtomicInteger invalidLink = new AtomicInteger(0);
     private AtomicInteger successful = new AtomicInteger(0);
+    private AtomicInteger persisted = new AtomicInteger(0);
 
 
     private int totalLast;
@@ -22,26 +25,35 @@ public class Counter implements Runnable {
     private int invalidLangLast;
     private int invalidLinkLast;
     private int successfulLast;
+    private int persistedLast;
 
     public void increment(States state) {
-        total.incrementAndGet();
         switch (state) {
             case TOTAL:
+                total.incrementAndGet();
                 break;
             case DUPLICATE:
+                total.incrementAndGet();
                 duplicate.incrementAndGet();
                 break;
             case SUCCESSFUL:
+                total.incrementAndGet();
                 successful.incrementAndGet();
                 break;
             case INVALID_LANG:
+                total.incrementAndGet();
                 invalidLang.incrementAndGet();
                 break;
             case INVALID_LINK:
+                total.incrementAndGet();
                 invalidLink.incrementAndGet();
                 break;
             case LRU_REJECTED:
+                total.incrementAndGet();
                 LRURejected.incrementAndGet();
+                break;
+            case PERSISTED:
+                persisted.incrementAndGet();
                 break;
         }
     }
@@ -60,6 +72,8 @@ public class Counter implements Runnable {
                 return invalidLink.get();
             case LRU_REJECTED:
                 return LRURejected.get();
+            case PERSISTED:
+                return persisted.get();
             default:
                 return 0;
         }
@@ -77,7 +91,8 @@ public class Counter implements Runnable {
                         "\tduplicate= " + (duplicate.get() - duplicateLast) + "\n" +
                         "\tinvalidLang= " + (invalidLang.get() - invalidLangLast) + "\n" +
                         "\tinvalidLink= " + (invalidLink.get() - invalidLinkLast) + "\n" +
-                        "\tsuccessful= " + (successful.get() - successfulLast) + "\n"
+                        "\tsuccessful= " + (successful.get() - successfulLast) + "\n" +
+                        "\tpersisted= " + (persisted.get() - persistedLast) + "\n"
                 );
                 totalLast = total.get();
                 LRURejectedLast = LRURejected.get();
@@ -85,6 +100,7 @@ public class Counter implements Runnable {
                 invalidLangLast = invalidLang.get();
                 invalidLinkLast = invalidLink.get();
                 successfulLast = successful.get();
+                persistedLast = persisted.get();
             }
 
         } catch (InterruptedException e) {
@@ -92,8 +108,22 @@ public class Counter implements Runnable {
         }
     }
 
+    @Override
+    public Status status() {
+        Status status = new Status("Counter", "");
+
+        status.addLine("Links TOTAL :" + this.get(Counter.States.TOTAL));
+        status.addLine("Links DUPLICATE :" + this.get(Counter.States.DUPLICATE));
+        status.addLine("Links INVALID_LINK :" + this.get(Counter.States.INVALID_LINK));
+        status.addLine("Links LRU_REJECTED :" + this.get(Counter.States.LRU_REJECTED));
+        status.addLine("Links INVALID_LANG :" + this.get(Counter.States.INVALID_LANG));
+        status.addLine("Links SUCCESSFUL :" + this.get(Counter.States.SUCCESSFUL));
+        status.addLine("Links PERSISTED :" + this.get(Counter.States.PERSISTED));
+        return status;
+    }
+
 
     public enum States {
-        TOTAL, LRU_REJECTED, DUPLICATE, INVALID_LANG, INVALID_LINK, SUCCESSFUL
+        TOTAL, LRU_REJECTED, DUPLICATE, INVALID_LANG, INVALID_LINK, SUCCESSFUL, PERSISTED
     }
 }

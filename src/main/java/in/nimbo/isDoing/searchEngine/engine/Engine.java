@@ -48,20 +48,24 @@ public class Engine {
 
     public void startService(String name) {
         try {
-            switch (name) {
-                case "crawler":
-                    startService(new CrawlerService());
-                    break;
-                case "twitterReader":
-                    startService(new TwitterReaderService());
-                    break;
-                default:
-                    output.show(Output.Type.ERROR, "Service Not Found");
-                    break;
+            if (services.get(name) != null) {
+                output.show(Output.Type.ERROR, "service Already Running");
+            } else {
+                switch (name) {
+                    case "crawler":
+                        startService(new CrawlerService());
+                        break;
+                    case "twitterReader":
+                        startService(new TwitterReaderService());
+                        break;
+                    default:
+                        output.show(Output.Type.ERROR, "Service Not Found");
+                        break;
+                }
             }
-
         } catch (Exception e) {
             output.show(Output.Type.ERROR, e.toString());
+            logger.error("Error in Creating Service", e);
         }
     }
 
@@ -75,6 +79,7 @@ public class Engine {
         } catch (Exception e) {
             logger.error("Error During starting Service.", e);
             output.show(Output.Type.ERROR, e.toString());
+            output.show(Output.Type.WARN, "Stopping Service");
             service.stop();
         }
 
@@ -93,6 +98,18 @@ public class Engine {
             logger.error("Error During Stopping Service.", e);
             getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +
                     "Please See Logs");
+        }
+    }
+
+    public void status(Service service) {
+        getOutput().show(service.status());
+    }
+
+    public void status(String service) {
+        if (services.get(service) == null) {
+            output.show(Output.Type.ERROR, "service not Running");
+        } else {
+            status(services.get(service));
         }
     }
 }
