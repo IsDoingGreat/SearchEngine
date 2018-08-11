@@ -17,6 +17,7 @@
         <boilerpipe.version>1.2.3</boilerpipe.version>
         <slf4j.version>1.7.16</slf4j.version>
         <cliche.version>110413</cliche.version>
+        <hbase.version>2.1.0</hbase.version>
     </properties>
 
     <dependencies>
@@ -110,6 +111,18 @@
             <artifactId>jetty-all</artifactId>
             <version>RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
