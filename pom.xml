@@ -104,6 +104,12 @@
             <artifactId>satori-sdk-java</artifactId>
             <version>1.0.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 
     <build>
