@@ -21,7 +21,7 @@ public class PageCrawlerImpl implements PageCrawler {
     @Override
     public void run() {
         try {
-            while (!Thread.interrupted()) {
+            while (!Thread.currentThread().isInterrupted()) {
                 String link = controller.getQueue().take();
                 URL url;
 
@@ -68,7 +68,7 @@ public class PageCrawlerImpl implements PageCrawler {
                     controller.getURLQueue().push(outgoingUrl);
                 }
 
-                controller.getPersister().insert(page);
+                controller.getPersister().getPageQueue().put(page);
 
                 controller.getCounter().increment(Counter.States.SUCCESSFUL);
             }

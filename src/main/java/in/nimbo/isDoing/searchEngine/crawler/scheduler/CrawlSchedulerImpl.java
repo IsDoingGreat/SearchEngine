@@ -73,6 +73,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
 
         logger.info("Starting scheduler at {}", startDate);
 
+        controller.getPersister().start();
+
         int numberOfThreads = 0;
         while (numberOfThreads < maxActiveCrawlers) {
             executor.submit(new PageCrawlerImpl(controller));
@@ -119,7 +121,9 @@ public class CrawlSchedulerImpl implements CrawlScheduler {
             urlQueue.stop();
 
             Engine.getOutput().show("Intercepting Counter Thread... ");
-            counterThread.interrupt();
+            if (counterThread != null) {
+                counterThread.interrupt();
+            }
 
         } catch (InterruptedException e) {
             e.printStackTrace();

@@ -5,12 +5,15 @@ import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class Engine {
+    private static final Logger logger = LoggerFactory.getLogger(Engine.class.getSimpleName());
     private static volatile Engine instance;
     private Output output;
     private Configs configs;
@@ -70,6 +73,7 @@ public class Engine {
             } else
                 output.show(Output.Type.ERROR, "service Already Running");
         } catch (Exception e) {
+            logger.error("Error During starting Service.", e);
             output.show(Output.Type.ERROR, e.toString());
             service.stop();
         }
@@ -86,6 +90,7 @@ public class Engine {
             services.get(serviceName).stop();
             services.remove(serviceName);
         } catch (Exception e) {
+            logger.error("Error During Stopping Service.", e);
             getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +
                     "Please See Logs");
         }
