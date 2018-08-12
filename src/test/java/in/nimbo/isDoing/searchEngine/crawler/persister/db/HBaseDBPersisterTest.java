@@ -1,30 +1,13 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
 
-import in.nimbo.isDoing.searchEngine.crawler.page.Page;
-import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
-import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
-import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.util.Bytes;
-import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 public class HBaseDBPersisterTest {
 
     @Test
     public void persist() throws Exception {
+        return;
+        /*
 
         Engine.start(new ConsoleOutput(), new Configs() {
             @Override
@@ -195,6 +178,7 @@ public class HBaseDBPersisterTest {
             e.printStackTrace();
         }
         return res;
+        */
     }
 
     @Test

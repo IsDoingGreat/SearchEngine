@@ -110,26 +110,22 @@
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all</artifactId>
-            <version>RELEASE</version>
+            <version>9.4.10.v20180503</version>
+            <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-shaded-client</artifactId>
+            <version>${hbase.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
+            <version>2.1.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
-
-        <!--<dependency>-->
-            <!--<groupId>fast-md5</groupId>-->
-            <!--<artifactId>fast-md5</artifactId>-->
-            <!--<version>${md5.version}</version>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>com.joyent.util</groupId>
