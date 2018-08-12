@@ -33,7 +33,7 @@ public class PageCrawlerImpl implements PageCrawler {
                     continue;
                 }
 
-                if (controller.getDuplicateChecker().isDuplicate(link)) {
+                if (controller.getDuplicateChecker().checkDuplicateAndSet(url)) {
                     controller.getCounter().increment(Counter.States.DUPLICATE);
                     continue;
                 }
