@@ -49,9 +49,9 @@ public class KafkaUrlQueue implements URLQueue {
 
     @Override
     public List<String> pop(int number) {
-        Iterable<ConsumerRecord<Long, String>> records = consumerController.get();
+        Iterable<ConsumerRecord<String, String>> records = consumerController.get();
         List<String> list = new ArrayList<>();
-        for (ConsumerRecord<Long, String> record : records) {
+        for (ConsumerRecord<String, String> record : records) {
             list.add(record.value());
         }
         return Collections.unmodifiableList(list);
