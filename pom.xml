@@ -18,6 +18,7 @@
         <slf4j.version>1.7.16</slf4j.version>
         <cliche.version>110413</cliche.version>
         <hbase.version>2.1.0</hbase.version>
+        <md5.version>2.5</md5.version>
     </properties>
 
     <dependencies>
@@ -117,10 +118,23 @@
             <artifactId>hbase-client</artifactId>
             <version>${hbase.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase</artifactId>
             <version>${hbase.version}</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>fast-md5</groupId>-->
+            <!--<artifactId>fast-md5</artifactId>-->
+            <!--<version>${md5.version}</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.joyent.util</groupId>
+            <artifactId>fast-md5</artifactId>
+            <version>2.7.1</version>
         </dependency>
 
     </dependencies>
