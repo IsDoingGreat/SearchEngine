@@ -93,8 +93,10 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping CaffeineDuplicateChecker... ");
         try {
             table.close();
+            Engine.getOutput().show("Closing crawledLink table... ");
         } catch (IOException e) {
             logger.error("Closing crawledLink table failed: ", e);
             throw new IllegalStateException(e);
