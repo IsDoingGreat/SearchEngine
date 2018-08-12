@@ -1,7 +1,8 @@
 package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 
-public interface DuplicateChecker {
-    boolean isDuplicate(String page) throws Exception;
+import java.net.URL;
 
+public interface DuplicateChecker {
+    boolean checkDuplicateAndSet(URL url) throws Exception;
     void stop();
 }
