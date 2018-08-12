@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class ElasticDBPersister implements DBPersister {
     private static final Logger logger = LoggerFactory.getLogger(ElasticDBPersister.class);
     private static final String DEFAULT_FLUSH_SIZE = "2";
-    private static final String DEFAULT_FLUSH_NUMBER = "100";
+    private static final String DEFAULT_FLUSH_NUMBER = "150";
 
     private BulkRequest elasticBulkRequest;
     private RestHighLevelClient client;
@@ -25,6 +25,7 @@ public class ElasticDBPersister implements DBPersister {
     private String elasticDocument;
     private int elasticFlushSizeLimit;
     private int elasticFlushNumberLimit;
+
 
     public ElasticDBPersister() {
         Engine.getOutput().show("Creating ElasticDBPersister...");
@@ -46,17 +47,11 @@ public class ElasticDBPersister implements DBPersister {
 
     @Override
     public void persist(Page page) throws Exception {
-        String text = null;
-        try {
-            text = page.getExtractedText();
-        } catch (Exception ignored) {
-        }
-
         IndexRequest indexRequest = new IndexRequest(elasticIndex, elasticDocument);
         indexRequest.source(
                 "title", page.getTitle(),
                 "url", page.getUrl().toExternalForm(),
-                "text", text == null ? page.getText() : text
+                "text", page.getText()
         );
 
         elasticBulkRequest.add(indexRequest);
@@ -74,8 +69,9 @@ public class ElasticDBPersister implements DBPersister {
 
     @Override
     public void flush() throws Exception {
-        if (elasticBulkRequest.numberOfActions() > 0)
+        if (elasticBulkRequest.numberOfActions() > 0) {
             client.bulk(elasticBulkRequest);
+        }
 
         elasticBulkRequest = new BulkRequest();
     }

@@ -19,6 +19,9 @@ public class WebPage implements Page {
     private String body;
     private Document document;
     private URL url;
+    private String text;
+    private Set<String> outgoingUrls;
+    private String title;
 
     public WebPage(String body, URL url) {
         this.body = body;
@@ -56,17 +59,22 @@ public class WebPage implements Page {
 
     @Override
     public String getText() {
+        if(text != null)
+            return text;
+
         Objects.requireNonNull(document);
         Element body = document.body();
         if (body != null)
-            return body.text();
-        return "";
+            return text =body.text();
+        return text = "";
     }
 
     @Override
     public String getTitle() {
+        if (title != null)
+            return title;
         Objects.requireNonNull(document);
-        return document.title();
+        return title =  document.title();
     }
 
     @Override
@@ -86,6 +94,9 @@ public class WebPage implements Page {
 
     @Override
     public Set<String> getOutgoingUrls() {
+        if (outgoingUrls != null)
+            return outgoingUrls;
+
         Objects.requireNonNull(document);
         Set<String> urls = new HashSet<>();
         Elements links = document.select("a[href]");
@@ -99,7 +110,7 @@ public class WebPage implements Page {
             urls.add(url);
         }
 
-        return urls;
+        return outgoingUrls = urls;
     }
 
     /**

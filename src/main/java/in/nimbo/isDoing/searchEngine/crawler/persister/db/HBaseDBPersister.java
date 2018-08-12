@@ -63,13 +63,16 @@ public class HBaseDBPersister implements DBPersister {
         pagesBulkPut.add(pagePut);
 
         Put backLinkPut = new Put(rowKeyBytes);
+
         int index = 0;
         byte[] backLinkCFBytes = Bytes.toBytes(backLinkColumnFamily);
         for (String link : page.getOutgoingUrls()) {
             backLinkPut.addColumn(backLinkCFBytes, Bytes.toBytes(index), Bytes.toBytes(link));
             index++;
         }
-        backLinkBulkPut.add(backLinkPut);
+        if (index > 0) {
+            backLinkBulkPut.add(backLinkPut);
+        }
         flushIfNeeded();
     }
 
@@ -81,15 +84,17 @@ public class HBaseDBPersister implements DBPersister {
 
     @Override
     public void flush() throws Exception {
-        Table pagesTable = connection.getTable(pagesTableName);
-        pagesTable.put(pagesBulkPut);
-        pagesTable.close();
+        if (pagesBulkPut.size() > 0) {
+            Table pagesTable = connection.getTable(pagesTableName);
+            pagesTable.put(pagesBulkPut);
+            pagesTable.close();
 
-        Table backLinkTable = connection.getTable(backLinkTableName);
-        backLinkTable.put(backLinkBulkPut);
-        backLinkTable.close();
+            Table backLinkTable = connection.getTable(backLinkTableName);
+            backLinkTable.put(backLinkBulkPut);
+            backLinkTable.close();
 
-        pagesBulkPut.clear();
-        backLinkBulkPut.clear();
+            pagesBulkPut.clear();
+            backLinkBulkPut.clear();
+        }
     }
 }

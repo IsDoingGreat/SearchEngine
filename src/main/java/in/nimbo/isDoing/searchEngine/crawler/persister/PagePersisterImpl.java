@@ -3,6 +3,7 @@ package in.nimbo.isDoing.searchEngine.crawler.persister;
 import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
+import in.nimbo.isDoing.searchEngine.crawler.persister.db.HBaseDBPersister;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class PagePersisterImpl implements PagePersister {
         //Initializing Runnables To See If There is Any Error!!
         persisterThreads = new Runnable[persisterThreadNumber];
         for (int i = 0; i < persisterThreadNumber; i++) {
-            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister());
+            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister(),new HBaseDBPersister());
         }
         logger.info("PagePersister Created...");
     }

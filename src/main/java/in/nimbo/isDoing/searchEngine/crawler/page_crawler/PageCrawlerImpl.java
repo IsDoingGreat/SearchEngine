@@ -33,15 +33,15 @@ public class PageCrawlerImpl implements PageCrawler {
                     continue;
                 }
 
-                if (controller.getDuplicateChecker().checkDuplicateAndSet(url)) {
-                    controller.getCounter().increment(Counter.States.DUPLICATE);
-                    continue;
-                }
-
                 if (controller.getLRU().isRecentlyUsed(url.getHost())) {
                     controller.getURLQueue().push(url.toExternalForm());
                     controller.getCounter().increment(Counter.States.LRU_REJECTED);
                     //logger.trace("link is recently used {}", link);
+                    continue;
+                }
+
+                if (controller.getDuplicateChecker().checkDuplicateAndSet(url)) {
+                    controller.getCounter().increment(Counter.States.DUPLICATE);
                     continue;
                 }
 

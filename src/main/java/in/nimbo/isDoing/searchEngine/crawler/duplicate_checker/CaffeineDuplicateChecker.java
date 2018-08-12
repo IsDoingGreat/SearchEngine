@@ -8,6 +8,7 @@ import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
     private String crawledLinkColumnFamily;
     private String crawledLinkQuantifier;
     private Table table;
-
+    private int numPartitions = 2;
     private Connection connection;
 
     public CaffeineDuplicateChecker() {
@@ -83,7 +84,7 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
     private void persist(URL url) {
         try {
             Put put = new Put(Bytes.toBytes(HBaseClient.getInstance().generateRowKey(url)));
-            put.addColumn(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier), Bytes.toBytes(url.toExternalForm()));
+            put.addColumn(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier), Bytes.toBytes((byte) (Utils.toPositive(Utils.murmur2(url.getHost().getBytes())) % numPartitions)));
             table.put(put);
         } catch (IOException e) {
             logger.error("Persist URL failed: ", e);

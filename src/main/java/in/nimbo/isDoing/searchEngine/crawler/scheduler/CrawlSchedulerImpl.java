@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
@@ -31,7 +34,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
     private int queueSize;
     private int queuePopSize;
     private PageCrawlerController controller;
-    private ExecutorService executor;
+    private ThreadPoolExecutor executor;
     private Date startDate = null;
     private volatile boolean exitRequested = false;
     private BlockingQueue<String> queue;
@@ -94,8 +97,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
             counterThread.start();
             while (!exitRequested && !Thread.interrupted()) {
                 List<String> urlList = urlQueue.pop(queuePopSize);
-                logger.trace("{} urls poped from URLQueue", urlList.size());
-                logger.trace("{} urls in Blocking Queue", queue.size());
+//                logger.trace("{} urls poped from URLQueue", urlList.size());
+//                logger.trace("{} urls in Blocking Queue", queue.size());
                 for (String url : urlList) {
                     queue.put(url);
                 }
@@ -117,13 +120,19 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
             exitRequested = true;
             Engine.getOutput().show("Waiting for Fetcher Threads To Stop (At Most 10 Seconds)... ");
             executor.shutdownNow();
+            Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
             if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+
+                executor.shutdownNow();
                 Engine.getOutput().show(Output.Type.WARN,
                         "Fetcher Threads Termination is taking too long. Waiting for one more time...");
 
+                Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
                 if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
                     Engine.getOutput().show(Output.Type.ERROR,
                             "Fetcher Threads Termination Not Completed in 20 Seconds. Ignoring...");
+                            Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
+
                 } else {
                     Engine.getOutput().show(Output.Type.SUCCESS,
                             "Fetcher Threads Terminated");

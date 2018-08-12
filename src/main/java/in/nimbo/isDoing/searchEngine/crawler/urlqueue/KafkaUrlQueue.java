@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,7 @@ public class KafkaUrlQueue implements URLQueue {
     @Override
     public void push(String url) {
         try {
-            producerController.produce(url);
+            producerController.produce(new URL(url).getHost(), url);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
