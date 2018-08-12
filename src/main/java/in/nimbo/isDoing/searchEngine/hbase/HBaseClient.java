@@ -1,5 +1,6 @@
 package in.nimbo.isDoing.searchEngine.hbase;
 
+import com.twmacinta.util.MD5;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.apache.hadoop.conf.Configuration;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 
 public class HBaseClient {
@@ -50,6 +52,20 @@ public class HBaseClient {
 
     public static void close() throws IOException {
         getConnection().close();
+    }
+
+    public  String generateRowKey(URL url) {
+        String rowKey = url.getHost();
+        MD5 md5 = new MD5();
+        try {
+            md5.Update(url.getPath(), null);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String hash = md5.asHex();
+        rowKey += "/" + hash;
+
+        return rowKey;
     }
 
 }
