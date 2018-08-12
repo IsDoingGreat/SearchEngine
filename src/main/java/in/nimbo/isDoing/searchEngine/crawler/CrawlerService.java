@@ -66,10 +66,10 @@ public class CrawlerService implements Service {
         try {
             Path seedLock = Paths.get("./seed.lock");
             Path seedFile = Paths.get("./seeds.txt");
-            if (/*!Files.exists(seedLock) &&*/ Files.exists(seedFile)) {
+            if (!Files.exists(seedLock) && Files.exists(seedFile)) {
                 logger.info("loading Seeds...");
                 Engine.getOutput().show("loading Seeds...");
-//                Files.createFile(seedLock);
+                Files.createFile(seedLock);
                 List<String> lines = Files.readAllLines(seedFile);
                 for (String line : lines) {
                     urlQueue.push(line);
