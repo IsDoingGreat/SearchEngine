@@ -5,6 +5,8 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import java.io.IOException;
+
 public class ElasticClient {
 
     private static volatile ElasticClient instance = new ElasticClient();
@@ -35,5 +37,9 @@ public class ElasticClient {
 
     public static RestHighLevelClient getClient() {
         return getInstance().client;
+    }
+
+    public static void close() throws IOException {
+        getClient().close();
     }
 }

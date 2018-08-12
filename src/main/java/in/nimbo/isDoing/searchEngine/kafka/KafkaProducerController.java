@@ -24,6 +24,7 @@ public class KafkaProducerController {
         props.put(ProducerConfig.CLIENT_ID_CONFIG, clientID);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+//        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, Partitioner);
         this.producer = new KafkaProducer<>(props);
     }
 
@@ -36,11 +37,13 @@ public class KafkaProducerController {
     public void produce(String text) throws ExecutionException, InterruptedException {
         ProducerRecord<Long, String> record = new ProducerRecord<>(topicName, text);
 
-        producer.send(record).get();
+        producer.send(record);
     }
 
     public void stop() {
-        if (producer!= null)
+        if (producer!= null) {
+            producer.flush();
             producer.close();
+        }
     }
 }

@@ -3,17 +3,13 @@ package in.nimbo.isDoing.searchEngine.crawler.persister;
 import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
-import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static in.nimbo.isDoing.searchEngine.pipeline.Output.Type.ERROR;
 
 public class PagePersisterImpl implements PagePersister {
     private final static Logger logger = LoggerFactory.getLogger(PagePersisterImpl.class);
@@ -62,13 +58,6 @@ public class PagePersisterImpl implements PagePersister {
         try {
             persisterExecutor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
-        }
-
-        try {
-            ElasticClient.getClient().close();
-        } catch (IOException e) {
-            logger.error("Closing Elastic With Error", e);
-            Engine.getOutput().show(ERROR,"Closing Elastic With Error");
         }
     }
 

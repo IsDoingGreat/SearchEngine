@@ -20,10 +20,10 @@ public class HBaseClient {
     private Connection connection;
     private Configuration configuration;
 
-    private HBaseClient(){
+    private HBaseClient() {
         String hbaseSite = Engine.getConfigs().get("hbase.site");
         URL resource = this.getClass().getClassLoader().getResource(hbaseSite);
-        if (resource == null){
+        if (resource == null) {
             throw new NullPointerException("HBase site null");
         }
 
@@ -35,16 +35,21 @@ public class HBaseClient {
             connection = ConnectionFactory.createConnection(configuration);
         } catch (IOException e) {
             logger.warn("Error during create connection", e);
-            Engine.getOutput().show(Output.Type.ERROR,e.getMessage());
+            Engine.getOutput().show(Output.Type.ERROR, e.getMessage());
             throw new IllegalStateException(e);
         }
     }
+
     public static HBaseClient getInstance() {
         return instance;
     }
 
     public static Connection getConnection() {
         return getInstance().connection;
+    }
+
+    public static void close() throws IOException {
+        getConnection().close();
     }
 
 }
