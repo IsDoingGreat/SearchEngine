@@ -34,10 +34,10 @@ public class HBaseDBPersisterTest {
                         return "crawledLink";
 
                     case "crawler.persister.db.hbase.crawledLink.columnFamily":
-                        return "seen";
+                        return "partition";
 
                     case "crawler.persister.db.hbase.crawledLink.qualifier":
-                        return "seen";
+                        return "number";
 
 
                     case "crawler.persister.db.hbase.pages.tableName":
@@ -73,10 +73,10 @@ public class HBaseDBPersisterTest {
                         return "crawledLink";
 
                     case "crawler.persister.db.hbase.crawledLink.columnFamily":
-                        return "seen";
+                        return "partition";
 
                     case "crawler.persister.db.hbase.crawledLink.qualifier":
-                        return "seen";
+                        return "number";
 
 
                     case "crawler.persister.db.hbase.pages.tableName":
