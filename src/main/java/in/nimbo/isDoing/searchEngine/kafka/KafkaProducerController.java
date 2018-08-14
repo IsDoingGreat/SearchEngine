@@ -1,7 +1,6 @@
 package in.nimbo.isDoing.searchEngine.kafka;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -13,14 +12,14 @@ import java.util.concurrent.ExecutionException;
 
 public class KafkaProducerController {
     private static Logger logger = LoggerFactory.getLogger(KafkaProducerController.class);
-    private Producer<String, String> producer;
+    private KafkaProducer<String, String> producer;
     private String topicName;
 
     public KafkaProducerController(String brokers, String clientID, String topicName) {
         this(brokers, clientID, topicName, "1");
     }
 
-    public KafkaProducerController(String brokers, String clientID, String topicName, String  ack) {
+    public KafkaProducerController(String brokers, String clientID, String topicName, String ack) {
         this.topicName = topicName;
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
@@ -50,5 +49,9 @@ public class KafkaProducerController {
             producer.flush();
             producer.close();
         }
+    }
+
+    public KafkaProducer<String, String> getProducer() {
+        return producer;
     }
 }

@@ -1,16 +1,34 @@
 package in.nimbo.isDoing.searchEngine.kafka;
 
-import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Properties;
 
 
 public class KafkaConsumerController {
-    private Consumer<String, String> consumer;
+    private KafkaConsumer<String, String> consumer;
 
     public KafkaConsumerController(String brokers, String groupID, int maxPoolRecords, String topicName) {
+        final KafkaConsumer<String, String> consumer = getConsumer(brokers, groupID, maxPoolRecords);
+        consumer.subscribe(Collections.singletonList(topicName));
+        this.consumer = consumer;
+    }
+
+    public KafkaConsumerController(String brokers, String groupID, int maxPoolRecords, String topicName, int partition) {
+        final KafkaConsumer<String, String> consumer = getConsumer(brokers, groupID, maxPoolRecords);
+        consumer.assign(Collections.singletonList(new TopicPartition(topicName, partition)));
+        this.consumer = consumer;
+    }
+
+    @NotNull
+    private KafkaConsumer<String, String> getConsumer(String brokers, String groupID, int maxPoolRecords) {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupID);
@@ -18,11 +36,9 @@ public class KafkaConsumerController {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPoolRecords);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
 
-        final Consumer<String, String> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Collections.singletonList(topicName));
-        this.consumer = consumer;
+        return new KafkaConsumer<>(props);
     }
 
     public Iterable<ConsumerRecord<String, String>> get() {
@@ -34,5 +50,8 @@ public class KafkaConsumerController {
     public void stop() {
         if (consumer != null)
             consumer.close();
+    }
+    public KafkaConsumer<String,String> getConsumer(){
+        return consumer;
     }
 }
