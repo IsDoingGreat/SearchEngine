@@ -34,7 +34,7 @@ public class KafkaUrlQueue implements URLQueue {
         producerClientId = Engine.getConfigs().get("crawler.urlQueue.kafka.producerClientId", "Crawler Kafka UrlQueue");
 
         consumerController = new KafkaConsumerController(brokers, consumerGroupId, consumerMaxPoolRecords, topicName);
-        producerController = new KafkaProducerController(brokers, producerClientId, topicName, 0);
+        producerController = new KafkaProducerController(brokers, producerClientId, topicName, "0");
     }
 
 

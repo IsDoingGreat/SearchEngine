@@ -17,10 +17,10 @@ public class KafkaProducerController {
     private String topicName;
 
     public KafkaProducerController(String brokers, String clientID, String topicName) {
-        this(brokers, clientID, topicName, 1);
+        this(brokers, clientID, topicName, "1");
     }
 
-    public KafkaProducerController(String brokers, String clientID, String topicName, int ack) {
+    public KafkaProducerController(String brokers, String clientID, String topicName, String  ack) {
         this.topicName = topicName;
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
