@@ -6,7 +6,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -27,7 +26,6 @@ public class KafkaConsumerController {
         this.consumer = consumer;
     }
 
-    @NotNull
     private KafkaConsumer<String, String> getConsumer(String brokers, String groupID, int maxPoolRecords) {
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
