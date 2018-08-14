@@ -17,21 +17,26 @@ public class KafkaProducerController {
     private String topicName;
 
     public KafkaProducerController(String brokers, String clientID, String topicName) {
+        this(brokers, clientID, topicName, 1);
+    }
+
+    public KafkaProducerController(String brokers, String clientID, String topicName, int ack) {
         this.topicName = topicName;
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         props.put(ProducerConfig.CLIENT_ID_CONFIG, clientID);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.ACKS_CONFIG, 0);
+        props.put(ProducerConfig.ACKS_CONFIG, ack);
 //        props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, Partitioner);
         this.producer = new KafkaProducer<>(props);
+
     }
 
-    public void produce(String  index, String text) throws ExecutionException, InterruptedException {
+    public void produce(String index, String text) throws ExecutionException, InterruptedException {
         ProducerRecord<String, String> record = new ProducerRecord<>(topicName, index, text);
 
-        producer.send(record).get();
+        producer.send(record);
     }
 
     public void produce(String text) throws ExecutionException, InterruptedException {
@@ -41,7 +46,7 @@ public class KafkaProducerController {
     }
 
     public void stop() {
-        if (producer!= null) {
+        if (producer != null) {
             producer.flush();
             producer.close();
         }
