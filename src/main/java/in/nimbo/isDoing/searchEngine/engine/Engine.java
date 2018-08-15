@@ -40,23 +40,25 @@ public class Engine {
 
         instance = new Engine(out, configs);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                Engine.getInstance().stopAll();
+            if (instance != null) {
                 try {
-                    ElasticClient.close();
-                } catch (IOException e) {
-                    logger.error("Closing Elastic With Error", e);
-                    Engine.getOutput().show(ERROR, "Closing Elastic With Error");
-                }
+                    Engine.getInstance().stopAll();
+                    try {
+                        ElasticClient.close();
+                    } catch (IOException e) {
+                        logger.error("Closing Elastic With Error", e);
+                        Engine.getOutput().show(ERROR, "Closing Elastic With Error");
+                    }
 
-                try {
-                    HBaseClient.close();
-                } catch (IOException e) {
-                    logger.error("Closing HBase With Error", e);
-                    Engine.getOutput().show(ERROR, "Closing HBase With Error");
+                    try {
+                        HBaseClient.close();
+                    } catch (IOException e) {
+                        logger.error("Closing HBase With Error", e);
+                        Engine.getOutput().show(ERROR, "Closing HBase With Error");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }));
         out.show("Server Started");
