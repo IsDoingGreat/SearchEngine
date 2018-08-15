@@ -118,29 +118,25 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
     public void stop() {
         try {
             exitRequested = true;
-            Engine.getOutput().show("Waiting for Fetcher Threads To Stop (At Most 10 Seconds)... ");
+
+            int tries = 0;
+            Engine.getOutput().show("Waiting for Fetcher Threads To Stop (At Most 5 Tries and each 5 Seconds)... ");
             executor.shutdownNow();
-            Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
-            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
 
+            while (tries < 5 && !executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 executor.shutdownNow();
+                tries++;
                 Engine.getOutput().show(Output.Type.WARN,
-                        "Fetcher Threads Termination is taking too long. Waiting for one more time...");
-
+                        "Fetcher Threads Termination is taking too long. Waiting for one more time (Try:" + tries + " )...");
                 Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
-                if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    Engine.getOutput().show(Output.Type.ERROR,
-                            "Fetcher Threads Termination Not Completed in 20 Seconds. Ignoring...");
-                            Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
+            }
 
-                } else {
-                    Engine.getOutput().show(Output.Type.SUCCESS,
-                            "Fetcher Threads Terminated");
-                }
-            } else {
+            if (executor.getActiveCount() == 0)
                 Engine.getOutput().show(Output.Type.SUCCESS,
                         "Fetcher Threads Terminated");
-            }
+            else
+                Engine.getOutput().show(Output.Type.ERROR,
+                        "Fetcher Threads Termination Not Completed in " + tries + " Tries. Ignoring...");
 
             Engine.getOutput().show("Stopping Controller... ");
             controller.stop();
