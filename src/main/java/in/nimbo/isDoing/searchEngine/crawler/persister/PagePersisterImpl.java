@@ -4,15 +4,25 @@ import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.HBaseDBPersister;
+import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.cluster.health.ClusterHealthStatus;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PagePersisterImpl implements PagePersister {
+public class PagePersisterImpl implements PagePersister, HaveStatus {
     private final static Logger logger = LoggerFactory.getLogger(PagePersisterImpl.class);
 
     private static final int DEFAULT_THREAD_NUMBER = 2;
@@ -47,7 +57,7 @@ public class PagePersisterImpl implements PagePersister {
         //Initializing Runnables To See If There is Any Error!!
         persisterThreads = new Runnable[persisterThreadNumber];
         for (int i = 0; i < persisterThreadNumber; i++) {
-            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister(),new HBaseDBPersister());
+            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister(), new HBaseDBPersister());
         }
         logger.info("PagePersister Created...");
     }
@@ -79,6 +89,25 @@ public class PagePersisterImpl implements PagePersister {
     @Override
     public BlockingQueue<Page> getPageQueue() {
         return pageQueue;
+    }
+
+    @Override
+    public Status status() {
+        Status status = new Status("Elastic DB", "");
+        try {
+            Response response = ElasticClient.getClient().getLowLevelClient().performRequest("GET", "/_cluster/health");
+            ClusterHealthStatus healthStatus;
+            try (InputStream is = response.getEntity().getContent()) {
+                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    status.addLine(entry.getKey() + ": " + entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            status().addLine(e.getMessage());
+        }
+
+        return status;
     }
 
     private static class ThreadFactory implements java.util.concurrent.ThreadFactory {

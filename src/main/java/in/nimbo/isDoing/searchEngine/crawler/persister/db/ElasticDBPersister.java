@@ -3,27 +3,17 @@ package in.nimbo.isDoing.searchEngine.crawler.persister.db;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
 
 /**
  * This Class is not Thread-Safe!
  */
-public class ElasticDBPersister implements DBPersister, HaveStatus {
+public class ElasticDBPersister implements DBPersister {
     private static final Logger logger = LoggerFactory.getLogger(ElasticDBPersister.class);
     private static final String DEFAULT_FLUSH_SIZE = "2";
     private static final String DEFAULT_FLUSH_NUMBER = "150";
@@ -84,24 +74,5 @@ public class ElasticDBPersister implements DBPersister, HaveStatus {
         }
 
         elasticBulkRequest = new BulkRequest();
-    }
-
-    @Override
-    public Status status() {
-
-        try {
-            Response response = client.getLowLevelClient().performRequest("GET", "/_cluster/health");
-            ClusterHealthStatus healthStatus;
-            try (InputStream is = response.getEntity().getContent()) {
-                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    status().addLine(entry.getKey() + ": " + entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            status().addLine(e.getMessage());
-        }
-
-        return status();
     }
 }
