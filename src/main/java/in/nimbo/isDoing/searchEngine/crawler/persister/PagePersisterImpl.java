@@ -8,17 +8,11 @@ import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentType;
+import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -93,20 +87,9 @@ public class PagePersisterImpl implements PagePersister, HaveStatus {
 
     @Override
     public Status status() {
-        Status status = new Status("Elastic DB", "");
-        try {
-            Response response = ElasticClient.getClient().getLowLevelClient().performRequest("GET", "/_cluster/health");
-            ClusterHealthStatus healthStatus;
-            try (InputStream is = response.getEntity().getContent()) {
-                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    status.addLine(entry.getKey() + ": " + entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            status().addLine(e.getMessage());
-        }
-
+        Status status = new Status("Persister", "");
+        status.addSubSections(ElasticClient.getInstance().status());
+        status.addSubSections(HBaseClient.getInstance().status());
         return status;
     }
 
