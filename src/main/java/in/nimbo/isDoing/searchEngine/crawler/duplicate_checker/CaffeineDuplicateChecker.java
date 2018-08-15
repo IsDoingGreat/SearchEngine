@@ -5,8 +5,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
@@ -56,6 +58,20 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
             scan.setCaching(1000);
             scan.addColumn(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier));
             int loaded = 0;
+            boolean manualPartitionAssignment = Boolean.parseBoolean(Engine.getConfigs().get("crawler.urlQueue.kafka.manualPartitionAssignment"));
+            if (manualPartitionAssignment) {
+                int partition = Integer.parseInt(Engine.getConfigs().get("crawler.urlQueue.kafka.partition"));
+                SingleColumnValueFilter filter =
+                        new SingleColumnValueFilter(
+                                Bytes.toBytes(crawledLinkColumnFamily),
+                                Bytes.toBytes(crawledLinkQuantifier),
+                                CompareOperator.EQUAL,
+                                Bytes.toBytes((byte) partition)
+
+                        );
+                scan.setFilter(filter);
+            }
+
             for (Result res : table.getScanner(scan)) {
                 cache.put(Bytes.toString(res.getRow()), OBJECT);
                 loaded++;
