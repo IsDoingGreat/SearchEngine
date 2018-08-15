@@ -2,3 +2,7 @@
 target
 search-engine.log
 seed.lock
+kafka.log
+counter.log
+dependency-reduced-pom.xml
+output.log
