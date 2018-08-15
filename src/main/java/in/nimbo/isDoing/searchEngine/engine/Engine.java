@@ -1,24 +1,27 @@
 package in.nimbo.isDoing.searchEngine.engine;
 
 import in.nimbo.isDoing.searchEngine.crawler.CrawlerService;
+import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
+import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService;
 import in.nimbo.isDoing.searchEngine.web_server.WebServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Engine {
     private static final Logger logger = LoggerFactory.getLogger(Engine.class.getSimpleName());
     private static volatile Engine instance;
     private Output output;
     private Configs configs;
-    private Map<String, Service> services = new HashMap<>();
+    private Map<String, Service> services = new ConcurrentHashMap<>();
 
     Engine(Output output, Configs config) {
         this.output = output;
@@ -34,6 +37,17 @@ public class Engine {
             throw new RuntimeException("Engine has already started");
 
         instance = new Engine(out, configs);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                Engine.getInstance().stopAll();
+                ElasticClient.close();
+                HBaseClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }));
+        out.show("Server Started");
+        System.out.println("Server Started");
         return instance;
     }
 
@@ -45,6 +59,13 @@ public class Engine {
     public static Output getOutput() {
         Objects.requireNonNull(instance, "Engine Not Started");
         return instance.output;
+    }
+
+    public static synchronized Engine getInstance() {
+        if (instance == null)
+            throw new RuntimeException("Engine not started");
+
+        return instance;
     }
 
     public void startService(String name) {
@@ -89,6 +110,25 @@ public class Engine {
 
     }
 
+    public Service getService(String name) {
+        if (services.containsKey(name))
+            return services.get(name);
+        else
+            throw new RuntimeException("Service Not Found");
+    }
+
+    public void stopAll() {
+        try {
+            for (Map.Entry<String, Service> entry : services.entrySet()) {
+                stopService(entry.getKey());
+            }
+        } catch (Exception e) {
+            logger.error("Error Stopping Service", e);
+            output.show("Error Stopping Service");
+
+        }
+    }
+
     public void stopService(String serviceName) {
         if (services.get(serviceName) == null) {
             output.show(Output.Type.ERROR, "service is not running");
@@ -97,7 +137,7 @@ public class Engine {
 
         try {
             services.get(serviceName).stop();
-            services.remove(serviceName);
+            services.remove(services.get(serviceName));
         } catch (Exception e) {
             logger.error("Error During Stopping Service.", e);
             getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +
