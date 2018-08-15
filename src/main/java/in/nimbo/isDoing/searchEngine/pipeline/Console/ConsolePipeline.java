@@ -23,6 +23,7 @@ public class ConsolePipeline {
             ShellFactory.createConsoleShell("Search Engine", "Enter '?list' to list all commands",
                     new ConsoleCommands(engine)).commandLoop();
 
+            Engine.getInstance().stopAll();
             try {
                 ElasticClient.close();
             } catch (IOException e) {
