@@ -14,21 +14,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-public class webSearch implements WebController {
+public class WebSearch implements WebController {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             if (request.getParameter("q") == null) {
-                Path index = Paths.get("./html/index.html");
-                if (Files.exists(index)) {
-                    response.getWriter().print(new String(Files.readAllBytes(index)));
-                } else {
-                    throw new IllegalStateException("index.html does not exists!");
-                }
+                    response.getWriter().print("Welcome");
             } else {
                 response.getWriter().println("Query: " + request.getParameter("q"));
                 SearchRequest searchRequest = new SearchRequest("posts");
@@ -63,6 +55,7 @@ public class webSearch implements WebController {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
             e.printStackTrace(response.getWriter());
         }
     }

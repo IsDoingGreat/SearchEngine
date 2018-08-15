@@ -3,7 +3,9 @@ package in.nimbo.isDoing.searchEngine.web_server;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,14 @@ public class WebServerService implements Service {
         logger.info("WebServerHandler Service Created");
         server = new Server(8080);
         server.setHandler(new WebServerHandler());
+    }
+
+    public WebServerService(Handler handler) throws IOException {
+        logger.info("Creating WebServerHandler Service...");
+        //coding ...
+        logger.info("WebServerHandler Service Created");
+        server = new Server(8080);
+        server.setHandler(new HandlerList(handler, new WebServerHandler()));
     }
 
     @Override

@@ -1,7 +1,8 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
 
-import in.nimbo.isDoing.searchEngine.web_server.controller.webSearch;
+import in.nimbo.isDoing.searchEngine.web_server.controller.CrawlerStatus;
+import in.nimbo.isDoing.searchEngine.web_server.controller.WebSearch;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -20,12 +21,14 @@ public class WebServerHandler extends AbstractHandler {
         response.setStatus(HttpServletResponse.SC_OK);
 
         if (target.equals("/"))
-            new webSearch().handle(request,response);
+            new WebSearch().handle(request, response);
+        else if (target.startsWith("/status"))
+            new CrawlerStatus().handle(request, response);
         else
-            response.getWriter().println(target);
+            response.getWriter().println("target: " + target);
 
 
-//        out.println(request.getParameterMap());
+        response.getWriter().println(request.getParameterMap());
         baseRequest.setHandled(true);
     }
 }
