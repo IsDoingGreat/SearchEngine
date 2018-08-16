@@ -48,7 +48,6 @@ public class CaffeineLRU implements LRU, HaveStatus {
     @Override
     public Status status() {
         Status status = new Status("Caffeine LRU", "LRU Cache");
-        status.addLine(cache.stats().toString());
         status.addLine("estimated size :  " + cache.estimatedSize());
         return status;
     }
