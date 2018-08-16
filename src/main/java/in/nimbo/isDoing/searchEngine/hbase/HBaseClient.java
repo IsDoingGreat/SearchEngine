@@ -62,17 +62,17 @@ public class HBaseClient implements HaveStatus {
     }
 
     public String generateRowKey(URL url) {
-        String rowKey = url.getHost();
+        return url.getHost() + "/" + generateHash(url);
+    }
+
+    public String generateHash(URL url) {
         MD5 md5 = new MD5();
         try {
             md5.Update(url.getPath(), null);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String hash = md5.asHex();
-        rowKey += "/" + hash;
-
-        return rowKey;
+        return md5.asHex();
     }
 
     @Override

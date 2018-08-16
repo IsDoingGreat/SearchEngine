@@ -72,6 +72,7 @@ public class PageCrawlerImpl implements PageCrawler {
 
                 controller.getCounter().increment(Counter.States.SUCCESSFUL);
             }
+        } catch (InterruptedException ignored) {
         } catch (Exception e) {
             logger.error("PageCrawler Stopped With Error {}", e);
             return;
