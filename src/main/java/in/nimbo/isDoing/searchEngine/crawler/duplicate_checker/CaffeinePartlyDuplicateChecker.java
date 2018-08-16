@@ -1,7 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
@@ -19,24 +19,23 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URL;
 
-public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
+public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveStatus {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
     private final static Object OBJECT = new Object();
-    private Cache<String, Object> cache;
+    private static final int numPartitions = 2;
+    private LoadingCache<String, Object> cache;
     private TableName crawledLinkTableName;
     private String crawledLinkColumnFamily;
     private String crawledLinkQuantifier;
     private Table table;
     private int partition;
     private boolean manualPartitionAssignment;
-    private int numPartitions = 2;
+    private int maxSize = 2;
     private Connection connection;
 
-    public CaffeineDuplicateChecker() {
+    public CaffeinePartlyDuplicateChecker() {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
         logger.info("Creating CaffeineDuplicateChecker...");
-
-        cache = Caffeine.newBuilder().build();
 
         connection = HBaseClient.getConnection();
 
@@ -45,11 +44,13 @@ public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
         crawledLinkQuantifier = Engine.getConfigs().get("crawler.persister.db.hbase.crawledLink.qualifier");
         manualPartitionAssignment = Boolean.parseBoolean(Engine.getConfigs().get("crawler.urlQueue.kafka.manualPartitionAssignment"));
         partition = Integer.parseInt(Engine.getConfigs().get("crawler.urlQueue.kafka.partition"));
+        maxSize = Integer.parseInt(Engine.getConfigs().get("crawler.duplicate_checker.maxSize"));
         logger.info("Duplicate Checker Settings:\n" +
                 "crawledLinkTableName : " + crawledLinkTableName +
                 "\ncrawledLinkColumnFamily : " + crawledLinkColumnFamily +
                 "\ncrawledLinkQuantifier : " + crawledLinkQuantifier +
                 "\nmanualPartitionAssignment : " + manualPartitionAssignment +
+                "\nmaxSize : " + maxSize +
                 "\npartition : " + partition);
 
         try {
@@ -58,6 +59,14 @@ public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
             logger.error("Get table of HBase connection failed: ", e);
             throw new IllegalStateException(e);
         }
+
+        cache = Caffeine.newBuilder()
+                .maximumSize(maxSize)
+                .build(key -> {
+                    Get get = new Get(Bytes.toBytes(key));
+                    byte[] result = table.get(get).getValue(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier));
+                    return Bytes.toString(result);
+                });
 
         loadDataFromHBase();
 
@@ -88,6 +97,11 @@ public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
                 if (loaded % 10000 == 0) {
                     Engine.getOutput().show(loaded + " Cache Entries loaded!");
                 }
+
+                if (loaded >= maxSize) {
+                    Engine.getOutput().show("MaxSize Reached");
+                    break;
+                }
             }
             Engine.getOutput().show(loaded + " Cache Entries loaded!");
 
@@ -99,7 +113,7 @@ public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
 
     @Override
     public boolean checkDuplicateAndSet(URL url) throws Exception {
-        if (cache.getIfPresent(HBaseClient.getInstance().generateRowKey(url)) != null)
+        if (cache.get(HBaseClient.getInstance().generateRowKey(url)) != null)
             return true;
         else {
             cache.put(HBaseClient.getInstance().generateRowKey(url), OBJECT);
