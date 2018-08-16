@@ -1,6 +1,6 @@
 package in.nimbo.isDoing.searchEngine.crawler.controller;
 
-import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.CaffeineDuplicateChecker;
+import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.DomainTreeDuplicateChecker;
 import in.nimbo.isDoing.searchEngine.crawler.duplicate_checker.DuplicateChecker;
 import in.nimbo.isDoing.searchEngine.crawler.fetcher.AsyncFetcher;
 import in.nimbo.isDoing.searchEngine.crawler.fetcher.PageFetcher;
@@ -56,7 +56,7 @@ public class PageCrawlerControllerImpl implements PageCrawlerController, HaveSta
                 new AsyncFetcher(),
                 new CaffeineLRU(),
                 new PagePersisterImpl(counter),
-                new CaffeineDuplicateChecker(),
+                new DomainTreeDuplicateChecker(),
                 counter
         );
         logger.info("PageCrawlerController Created");

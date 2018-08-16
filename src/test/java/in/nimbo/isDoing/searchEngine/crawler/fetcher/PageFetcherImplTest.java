@@ -3,23 +3,17 @@ package in.nimbo.isDoing.searchEngine.crawler.fetcher;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
-import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
-import org.apache.hadoop.security.KerberosInfo;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.misc.ObjectInputFilter;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class PageFetcherImplTest {
     @Before
@@ -45,7 +39,7 @@ public class PageFetcherImplTest {
     }
 
     @Test
-    public void fetchTest() throws IOException {
+    public void fetchTest() throws Exception {
         PageFetcher fetcher = new PageFetcherImpl();
         Page page = fetcher.fetch(new URL("http://example.com/"));
         page.parse();
