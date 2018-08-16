@@ -5,8 +5,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 
 public class CaffeineDuplicateChecker implements DuplicateChecker {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
@@ -23,6 +26,8 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
     private String crawledLinkColumnFamily;
     private String crawledLinkQuantifier;
     private Table table;
+    private int partition;
+    private boolean manualPartitionAssignment;
     private int numPartitions = 2;
     private Connection connection;
 
@@ -37,6 +42,14 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
         crawledLinkTableName = TableName.valueOf(Engine.getConfigs().get("crawler.persister.db.hbase.crawledLink.tableName"));
         crawledLinkColumnFamily = Engine.getConfigs().get("crawler.persister.db.hbase.crawledLink.columnFamily");
         crawledLinkQuantifier = Engine.getConfigs().get("crawler.persister.db.hbase.crawledLink.qualifier");
+        manualPartitionAssignment = Boolean.parseBoolean(Engine.getConfigs().get("crawler.urlQueue.kafka.manualPartitionAssignment"));
+        partition = Integer.parseInt(Engine.getConfigs().get("crawler.urlQueue.kafka.partition"));
+        logger.info("Duplicate Checker Settings:\n" +
+                "crawledLinkTableName : " + crawledLinkTableName +
+                "\ncrawledLinkColumnFamily : " + crawledLinkColumnFamily +
+                "\ncrawledLinkQuantifier : " + crawledLinkQuantifier +
+                "\nmanualPartitionAssignment : " + manualPartitionAssignment +
+                "\npartition : " + partition);
 
         try {
             table = connection.getTable(crawledLinkTableName);
@@ -56,11 +69,25 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
             scan.setCaching(1000);
             scan.addColumn(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier));
             int loaded = 0;
+            if (manualPartitionAssignment) {
+                SingleColumnValueFilter filter =
+                        new SingleColumnValueFilter(
+                                Bytes.toBytes(crawledLinkColumnFamily),
+                                Bytes.toBytes(crawledLinkQuantifier),
+                                CompareOperator.EQUAL,
+                                Bytes.toBytes((byte) partition)
+
+                        );
+                scan.setFilter(filter);
+            }
+
             for (Result res : table.getScanner(scan)) {
                 cache.put(Bytes.toString(res.getRow()), OBJECT);
                 loaded++;
-                if (loaded % 1000 == 0)
+                if (loaded % 1000 == 0) {
                     Engine.getOutput().show(loaded + " Cache Entries loaded!");
+                    Engine.getOutput().show(Arrays.toString((res.getValue(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier)))));
+                }
             }
             Engine.getOutput().show(loaded + " Cache Entries loaded!");
 

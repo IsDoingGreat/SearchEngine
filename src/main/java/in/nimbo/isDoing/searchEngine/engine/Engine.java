@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static in.nimbo.isDoing.searchEngine.pipeline.Output.Type.ERROR;
+
 public class Engine {
     private static final Logger logger = LoggerFactory.getLogger(Engine.class.getSimpleName());
     private static volatile Engine instance;
@@ -38,12 +40,25 @@ public class Engine {
 
         instance = new Engine(out, configs);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                Engine.getInstance().stopAll();
-                ElasticClient.close();
-                HBaseClient.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (instance != null) {
+                try {
+                    Engine.getInstance().stopAll();
+                    try {
+                        ElasticClient.close();
+                    } catch (IOException e) {
+                        logger.error("Closing Elastic With Error", e);
+                        Engine.getOutput().show(ERROR, "Closing Elastic With Error");
+                    }
+
+                    try {
+                        HBaseClient.close();
+                    } catch (IOException e) {
+                        logger.error("Closing HBase With Error", e);
+                        Engine.getOutput().show(ERROR, "Closing HBase With Error");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }));
         out.show("Server Started");
@@ -66,6 +81,11 @@ public class Engine {
             throw new RuntimeException("Engine not started");
 
         return instance;
+    }
+
+    public static void shutdown() {
+        instance.stopAll();
+        instance = null;
     }
 
     public void startService(String name) {
@@ -137,7 +157,7 @@ public class Engine {
 
         try {
             services.get(serviceName).stop();
-            services.remove(services.get(serviceName));
+            services.entrySet().removeIf(entries -> entries.getKey().equals(serviceName));
         } catch (Exception e) {
             logger.error("Error During Stopping Service.", e);
             getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +

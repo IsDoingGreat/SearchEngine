@@ -2,11 +2,10 @@ package in.nimbo.isDoing.searchEngine.crawler.fetcher;
 
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 
-import java.io.IOException;
 import java.net.URL;
 
 public interface PageFetcher {
-    Page fetch(URL url) throws IOException;
+    Page fetch(URL url) throws Exception;
 
     void stop();
     class BadStatusCodeException extends RuntimeException {

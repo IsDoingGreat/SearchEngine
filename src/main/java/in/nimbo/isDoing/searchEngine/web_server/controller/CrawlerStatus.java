@@ -19,7 +19,9 @@ public class CrawlerStatus implements WebController {
         try {
             this.response = response;
             Status status = Engine.getInstance().getService("crawler").status();
-            Engine.getOutput().show(status);
+            if (request.getParameter("c") != null) {
+                Engine.getOutput().show(status);
+            }
             response.getWriter().println("<pre>");
             show(status, 0);
         } catch (Exception e) {

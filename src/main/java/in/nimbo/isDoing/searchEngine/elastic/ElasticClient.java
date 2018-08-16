@@ -1,13 +1,20 @@
 package in.nimbo.isDoing.searchEngine.elastic;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.apache.http.HttpHost;
+import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 
-public class ElasticClient {
+public class ElasticClient implements HaveStatus {
 
     private static volatile ElasticClient instance = new ElasticClient();
     private RestHighLevelClient client;
@@ -41,5 +48,23 @@ public class ElasticClient {
 
     public static void close() throws IOException {
         getClient().close();
+    }
+
+    @Override
+    public Status status() {
+        Status status = new Status("Elastic DB", "");
+        try {
+            Response response = getClient().getLowLevelClient().performRequest("GET", "/_cluster/health");
+            try (InputStream is = response.getEntity().getContent()) {
+                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    status.addLine(entry.getKey() + ": " + entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            status().addLine(e.getMessage());
+        }
+
+        return status;
     }
 }
