@@ -63,8 +63,10 @@ public class TwitterReader {
                     }
 
                     //String created_at = jsonNode.get("created_at").asText();
-                    //String text = jsonNode.get("text").asText();
+                    String id = jsonNode.get("id").asText();
                     //String timestamp_ms = jsonNode.get("timestamp_ms").asText();
+                    String hashtags = jsonNode.get("entities").get("hashtags").asText();
+
                     String lang="";
                     if (jsonNode.has("lang")) {
                         lang = jsonNode.get("lang").asText();
@@ -72,6 +74,11 @@ public class TwitterReader {
                     if (lang.startsWith("en")) {
                         try {
                             producerController.produce(jsonNode.toString());
+                            //Start Adding changes to code
+
+                            System.out.println(id + " : " + hashtags);
+                            producerController.produce(id, hashtags);
+                            //end
                             received++;
                             logger.trace("Received {} , {}",received,jsonNode);
                         } catch (ExecutionException e) {
