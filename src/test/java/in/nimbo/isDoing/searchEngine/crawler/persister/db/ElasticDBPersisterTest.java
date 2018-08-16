@@ -70,7 +70,7 @@ public class ElasticDBPersisterTest {
 
     @Test
     public void persistWithManualFlush() throws Exception {
-        SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index"));
+        SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index", "1"));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         ElasticDBPersister elasticDBPersister = new ElasticDBPersister();
 
