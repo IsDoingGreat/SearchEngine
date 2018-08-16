@@ -4,6 +4,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.TableName;
@@ -18,7 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 
-public class CaffeineDuplicateChecker implements DuplicateChecker {
+public class CaffeineDuplicateChecker implements DuplicateChecker, HaveStatus {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
     private final static Object OBJECT = new Object();
     private Cache<String, Object> cache;
@@ -129,5 +131,12 @@ public class CaffeineDuplicateChecker implements DuplicateChecker {
             logger.error("Closing crawledLink table failed: ", e);
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public Status status() {
+        Status status = new Status("Duplicate Checker", "");
+        status.addLine("Duplicate Checker Size :" + cache.estimatedSize());
+        return status;
     }
 }
