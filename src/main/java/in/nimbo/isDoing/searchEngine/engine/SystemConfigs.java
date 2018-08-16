@@ -18,7 +18,6 @@ public class SystemConfigs implements Configs {
         Path configPath = Paths.get("./configs.properties");
         configs.load(new FileInputStream(configPath.toFile()));
         logger.info("config file loaded {}", configs);
-        configs.setProperty("exitRequested", "false");
     }
 
     @Override

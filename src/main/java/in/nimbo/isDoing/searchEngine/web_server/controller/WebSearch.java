@@ -1,6 +1,7 @@
 package in.nimbo.isDoing.searchEngine.web_server.controller;
 
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
+import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.Fuzziness;
@@ -23,7 +24,7 @@ public class WebSearch implements WebController {
                     response.getWriter().print("Welcome");
             } else {
                 response.getWriter().println("Query: " + request.getParameter("q"));
-                SearchRequest searchRequest = new SearchRequest("posts");
+                SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index"));
                 SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
                 QueryBuilder textQuery = QueryBuilders.matchQuery("text", request.getParameter("q"))
                         .fuzziness(Fuzziness.AUTO)
