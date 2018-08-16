@@ -161,7 +161,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
         status.addLine("Running Seconds : " + seconds);
         status.addLine("Average Link TOTAL :" + (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
         status.addLine("Average Link DUPLICATE :" + (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
-        status.addLine("Average Link INVALID_LINK :" + (controller.getCounter().get(Counter.States.INVALID_LINK) + 0.0) / seconds);
+        status.addLine("Average Link FETCHER_ERROR :" + (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);
         status.addLine("Average Link LRU_REJECTED :" + (controller.getCounter().get(Counter.States.LRU_REJECTED) + 0.0) / seconds);
         status.addLine("Average Link INVALID_LANG :" + (controller.getCounter().get(Counter.States.INVALID_LANG) + 0.0) / seconds);
         status.addLine("Average Link SUCCESSFUL :" + (controller.getCounter().get(Counter.States.SUCCESSFUL) + 0.0) / seconds);

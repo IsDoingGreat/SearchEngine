@@ -14,7 +14,7 @@ public class Counter implements Runnable, HaveStatus {
     private AtomicInteger LRURejected = new AtomicInteger(0);
     private AtomicInteger duplicate = new AtomicInteger(0);
     private AtomicInteger invalidLang = new AtomicInteger(0);
-    private AtomicInteger invalidLink = new AtomicInteger(0);
+    private AtomicInteger fetcherError = new AtomicInteger(0);
     private AtomicInteger successful = new AtomicInteger(0);
     private AtomicInteger persisted = new AtomicInteger(0);
 
@@ -23,7 +23,7 @@ public class Counter implements Runnable, HaveStatus {
     private int LRURejectedLast;
     private int duplicateLast;
     private int invalidLangLast;
-    private int invalidLinkLast;
+    private int fetcherErrorLast;
     private int successfulLast;
     private int persistedLast;
 
@@ -44,9 +44,9 @@ public class Counter implements Runnable, HaveStatus {
                 total.incrementAndGet();
                 invalidLang.incrementAndGet();
                 break;
-            case INVALID_LINK:
+            case FETCHER_ERROR:
                 total.incrementAndGet();
-                invalidLink.incrementAndGet();
+                fetcherError.incrementAndGet();
                 break;
             case LRU_REJECTED:
                 total.incrementAndGet();
@@ -68,8 +68,8 @@ public class Counter implements Runnable, HaveStatus {
                 return successful.get();
             case INVALID_LANG:
                 return invalidLang.get();
-            case INVALID_LINK:
-                return invalidLink.get();
+            case FETCHER_ERROR:
+                return fetcherError.get();
             case LRU_REJECTED:
                 return LRURejected.get();
             case PERSISTED:
@@ -90,7 +90,7 @@ public class Counter implements Runnable, HaveStatus {
                         "\tLRURejected= " + (LRURejected.get() - LRURejectedLast) + "\n" +
                         "\tduplicate= " + (duplicate.get() - duplicateLast) + "\n" +
                         "\tinvalidLang= " + (invalidLang.get() - invalidLangLast) + "\n" +
-                        "\tinvalidLink= " + (invalidLink.get() - invalidLinkLast) + "\n" +
+                        "\tfetcherError= " + (fetcherError.get() - fetcherErrorLast) + "\n" +
                         "\tsuccessful= " + (successful.get() - successfulLast) + "\n" +
                         "\tpersisted= " + (persisted.get() - persistedLast) + "\n"
                 );
@@ -98,7 +98,7 @@ public class Counter implements Runnable, HaveStatus {
                 LRURejectedLast = LRURejected.get();
                 duplicateLast = duplicate.get();
                 invalidLangLast = invalidLang.get();
-                invalidLinkLast = invalidLink.get();
+                fetcherErrorLast = fetcherError.get();
                 successfulLast = successful.get();
                 persistedLast = persisted.get();
             }
@@ -114,7 +114,7 @@ public class Counter implements Runnable, HaveStatus {
 
         status.addLine("Links TOTAL :" + this.get(Counter.States.TOTAL));
         status.addLine("Links DUPLICATE :" + this.get(Counter.States.DUPLICATE));
-        status.addLine("Links INVALID_LINK :" + this.get(Counter.States.INVALID_LINK));
+        status.addLine("Links FETCHER_ERROR :" + this.get(Counter.States.FETCHER_ERROR));
         status.addLine("Links LRU_REJECTED :" + this.get(Counter.States.LRU_REJECTED));
         status.addLine("Links INVALID_LANG :" + this.get(Counter.States.INVALID_LANG));
         status.addLine("Links SUCCESSFUL :" + this.get(Counter.States.SUCCESSFUL));
@@ -124,6 +124,6 @@ public class Counter implements Runnable, HaveStatus {
 
 
     public enum States {
-        TOTAL, LRU_REJECTED, DUPLICATE, INVALID_LANG, INVALID_LINK, SUCCESSFUL, PERSISTED
+        TOTAL, LRU_REJECTED, DUPLICATE, INVALID_LANG, FETCHER_ERROR, SUCCESSFUL, PERSISTED
     }
 }
