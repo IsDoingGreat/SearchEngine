@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,8 +23,6 @@ import java.util.concurrent.ExecutionException;
 
 public class TwitterReader {
     private static final Logger logger = LoggerFactory.getLogger(TwitterReader.class);
-
-    private final KafkaConsumerController consumerController;
     private KafkaProducerController producerController;
     private String endpoint = Engine.getConfigs().get("twitterReader.endpoint");
     private String appkey = Engine.getConfigs().get("twitterReader.appkey");
@@ -45,7 +44,6 @@ public class TwitterReader {
         String  producerClientId = Engine.getConfigs().get("twitterReader.kafka.producerClientId");
 
         producerController = new KafkaProducerController(brokers, producerClientId, topicName);
-        consumerController = new KafkaConsumerController(brokers,"1",1,topicName);
     }
 
     public void getTweets() throws InterruptedException {
@@ -65,25 +63,29 @@ public class TwitterReader {
                     //String created_at = jsonNode.get("created_at").asText();
                     String id = jsonNode.get("id").asText();
                     //String timestamp_ms = jsonNode.get("timestamp_ms").asText();
-                    String hashtags = jsonNode.get("entities").get("hashtags").asText();
+                    JsonNode hashtags = jsonNode.get("entities").get("hashtags");
 
                     String lang="";
                     if (jsonNode.has("lang")) {
                         lang = jsonNode.get("lang").asText();
                     }
-                    if (lang.startsWith("en")) {
+
+                    if (hashtags.size() > 0 && lang.startsWith("en")) {
                         try {
-                            producerController.produce(jsonNode.toString());
+                            StringBuilder hashtagString = new StringBuilder();
+                            for (JsonNode element : hashtags) {
+                                hashtagString.append(element.get("text").asText()).append(" ");
+                            }
+//                            producerController.produce(jsonNode.toString());
                             //Start Adding changes to code
 
-                            System.out.println(id + " : " + hashtags);
-                            producerController.produce(id, hashtags);
+//                            System.out.println(jsonNode);
+//                            System.out.println(id + " : " + hashtagString);
+                            producerController.produce(id, hashtagString.toString());
                             //end
                             received++;
                             logger.trace("Received {} , {}",received,jsonNode);
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         //System.out.println(jsonNode);
@@ -101,6 +103,5 @@ public class TwitterReader {
     public void stopGetTweets() {
         client.shutdown();
         producerController.stop();
-        consumerController.stop();
     }
 }
