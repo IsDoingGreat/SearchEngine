@@ -61,7 +61,7 @@ public class AsyncFetcher implements PageFetcher {
         try {
             asyncHttpClient.close();
         } catch (IOException e) {
-            logger.error("Fetcher close Error",e);
+            logger.error("Fetcher stop Error",e);
             Engine.getOutput().show(Output.Type.ERROR,"Error Stopping Fetcher");
         }
     }

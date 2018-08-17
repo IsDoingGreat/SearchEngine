@@ -31,6 +31,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
     private int partition;
     private boolean manualPartitionAssignment;
     private int maxSize = 2;
+    private boolean loadFromDatabase;
     private Connection connection;
 
     public CaffeinePartlyDuplicateChecker() {
@@ -45,6 +46,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
         manualPartitionAssignment = Boolean.parseBoolean(Engine.getConfigs().get("crawler.urlQueue.kafka.manualPartitionAssignment"));
         partition = Integer.parseInt(Engine.getConfigs().get("crawler.urlQueue.kafka.partition"));
         maxSize = Integer.parseInt(Engine.getConfigs().get("crawler.duplicate_checker.maxSize"));
+        loadFromDatabase = Boolean.parseBoolean(Engine.getConfigs().get("crawler.duplicate_checker.loadFromDatabase"));
         logger.info("Duplicate Checker Settings:\n" +
                 "crawledLinkTableName : " + crawledLinkTableName +
                 "\ncrawledLinkColumnFamily : " + crawledLinkColumnFamily +
@@ -68,7 +70,9 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
                     return Bytes.toString(result);
                 });
 
-        loadDataFromHBase();
+        if (loadFromDatabase) {
+            loadDataFromHBase();
+        }
 
         logger.info("CaffeineDuplicateChecker Created With Settings");
     }
