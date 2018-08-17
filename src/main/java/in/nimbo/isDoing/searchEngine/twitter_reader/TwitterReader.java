@@ -1,34 +1,22 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.satori.rtm.*;
-import com.satori.rtm.model.*;
+import com.satori.rtm.model.AnyJson;
+import com.satori.rtm.model.SubscriptionData;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.kafka.KafkaConsumerController;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 public class TwitterReader {
     private static final Logger logger = LoggerFactory.getLogger(TwitterReader.class);
     private KafkaProducerController producerController;
     private String endpoint = Engine.getConfigs().get("twitterReader.endpoint");
     private String appkey = Engine.getConfigs().get("twitterReader.appkey");
-    private String channel= Engine.getConfigs().get("twitterReader.channel");
-    private long received = 0;
-
     final RtmClient client = new RtmClientBuilder(endpoint, appkey)
             .setListener(new RtmClientAdapter() {
                 @Override
@@ -37,11 +25,13 @@ public class TwitterReader {
                 }
             })
             .build();
+    private String channel = Engine.getConfigs().get("twitterReader.channel");
+    private long received = 0;
 
     public TwitterReader() {
-        String  topicName = Engine.getConfigs().get("twitterReader.kafka.topicName");
-        String  brokers = Engine.getConfigs().get("twitterReader.kafka.brokers");
-        String  producerClientId = Engine.getConfigs().get("twitterReader.kafka.producerClientId");
+        String topicName = Engine.getConfigs().get("twitterReader.kafka.topicName");
+        String brokers = Engine.getConfigs().get("twitterReader.kafka.brokers");
+        String producerClientId = Engine.getConfigs().get("twitterReader.kafka.producerClientId");
 
         producerController = new KafkaProducerController(brokers, producerClientId, topicName);
     }
@@ -54,18 +44,22 @@ public class TwitterReader {
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     JsonNode jsonNode = null;
+
                     try {
                         jsonNode = objectMapper.readTree(json.toString());
                     } catch (IOException e) {
                         e.printStackTrace();
+                        continue;
                     }
 
-                    //String created_at = jsonNode.get("created_at").asText();
                     String id = jsonNode.get("id").asText();
-                    //String timestamp_ms = jsonNode.get("timestamp_ms").asText();
+
+                    if (!jsonNode.has("entities"))
+                        continue;
+
                     JsonNode hashtags = jsonNode.get("entities").get("hashtags");
 
-                    String lang="";
+                    String lang = "";
                     if (jsonNode.has("lang")) {
                         lang = jsonNode.get("lang").asText();
                     }
@@ -76,21 +70,13 @@ public class TwitterReader {
                             for (JsonNode element : hashtags) {
                                 hashtagString.append(element.get("text").asText()).append(" ");
                             }
-//                            producerController.produce(jsonNode.toString());
-                            //Start Adding changes to code
-
-//                            System.out.println(jsonNode);
-//                            System.out.println(id + " : " + hashtagString);
                             producerController.produce(id, hashtagString.toString());
-                            //end
                             received++;
-                            logger.trace("Received {} , {}",received,jsonNode);
+                            logger.trace("Received {} , {}", received, jsonNode);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        //System.out.println(jsonNode);
                     }
-                    //System.out.println("Created At: " + created_at + " Text: " + text + " lang: " + lang);
                 }
             }
         };
