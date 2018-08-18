@@ -5,6 +5,7 @@ import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.news_reader.NewsReaderService;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService;
 import in.nimbo.isDoing.searchEngine.web_server.WebServerService;
@@ -102,6 +103,9 @@ public class Engine {
                         break;
                     case "webServer":
                         startService(new WebServerService());
+                        break;
+                    case "newsReader":
+                        startService(new NewsReaderService());
                         break;
                     default:
                         output.show(Output.Type.ERROR, "Service Not Found");

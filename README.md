@@ -14,6 +14,7 @@ a SearchEngine implementation written in sahab internship program
 - Jsoup
 - Jetty
 - Apache Async Http Library
+- see more on pom.xml
 
 ##How to Run:
 - open configs.properties and change properties
