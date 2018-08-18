@@ -28,8 +28,8 @@ public class ElasticDBPersister implements DBPersister {
 
 
     public ElasticDBPersister() {
-        Engine.getOutput().show("Creating ElasticDBPersister...");
-        logger.info("Creating ElasticDBPersister...");
+        Engine.getOutput().show("Creating ElasticItemPersister...");
+        logger.info("Creating ElasticItemPersister...");
 
         client = ElasticClient.getClient();
         elasticBulkRequest = new BulkRequest();
@@ -42,7 +42,7 @@ public class ElasticDBPersister implements DBPersister {
         elasticFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
                 "crawler.persister.db.elastic.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
 
-        logger.info("ElasticDBPersister Created With Settings");
+        logger.info("ElasticItemPersister Created With Settings");
     }
 
     @Override

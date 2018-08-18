@@ -2,7 +2,6 @@ package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
@@ -20,7 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 
 public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveStatus {
-    private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
+    private final static Logger logger = LoggerFactory.getLogger(CaffeinePartlyDuplicateChecker.class);
     private final static Object OBJECT = new Object();
     private static final int numPartitions = 2;
     private LoadingCache<String, Object> cache;

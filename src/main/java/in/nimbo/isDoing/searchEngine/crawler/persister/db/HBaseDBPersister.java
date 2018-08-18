@@ -31,8 +31,8 @@ public class HBaseDBPersister implements DBPersister {
     private int hbaseFlushNumberLimit;
 
     public HBaseDBPersister() {
-        Engine.getOutput().show("Creating HBaseDBPersister...");
-        logger.info("Creating HBaseDBPersister...");
+        Engine.getOutput().show("Creating HBaseItemPersister...");
+        logger.info("Creating HBaseItemPersister...");
 
         connection = HBaseClient.getConnection();
 
@@ -48,7 +48,7 @@ public class HBaseDBPersister implements DBPersister {
         hbaseFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
                 "crawler.persister.db.hbase.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
 
-        logger.info("HBaseDBPersister Created With Settings");
+        logger.info("HBaseItemPersister Created With Settings");
     }
 
     @Override

@@ -150,7 +150,7 @@ public class HBaseDBPersisterTest {
         String testBackLink1 = "https://en.wikipedia.org/wiki/Portal:Contents";
         String testBackLink2 = "https://en.wikipedia.org/wiki/Portal:Featured_content";
 
-        HBaseDBPersister hBaseDBPersister = new HBaseDBPersister();
+        HBaseItemPersister hBaseDBPersister = new HBaseItemPersister();
         hBaseDBPersister.persist(page);
         hBaseDBPersister.flush();
 
@@ -173,7 +173,7 @@ public class HBaseDBPersisterTest {
             get.addFamily(Bytes.toBytes(columnFamily));
             Result result = table.get(get);
             res = result.rawCells();
-            table.close();
+            table.stop();
         } catch (IOException e) {
             e.printStackTrace();
         }
