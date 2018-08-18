@@ -1,7 +1,6 @@
-#SearchEngine
+# SearchEngine
 
-a SearchEngine implementation written in sahab internship program
-.
+a SearchEngine implementation written in sahab internship program.
 
 
 ## Used Technologies:
@@ -10,13 +9,13 @@ a SearchEngine implementation written in sahab internship program
 - ElasticSearch
 - Apache Maven
 
-##Used Libraries:
+## Used Libraries:
 - Jsoup
 - Jetty
 - Apache Async Http Library
 - see more on pom.xml
 
-##How to Run:
+## How to Run:
 - open configs.properties and change properties
 - run your HBase, Kafka, Elastic
 - run `mvn install`
