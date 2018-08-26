@@ -10,6 +10,7 @@ import in.nimbo.isDoing.searchEngine.news_reader.impl.ItemDAOImpl;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
 import in.nimbo.isDoing.searchEngine.news_reader.persister.Persister;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,12 @@ public class NewsReaderService implements Service {
     private ItemDAO itemDAO = new ItemDAOImpl(queue);
     private Persister persister = new Persister(queue);
     private boolean started = false;
+
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput());
+        new NewsReaderService().start();
+    }
+
     private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
         Thread thread = Executors.defaultThreadFactory().newThread(r);
         thread.setDaemon(true);
