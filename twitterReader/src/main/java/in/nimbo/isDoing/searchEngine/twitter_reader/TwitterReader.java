@@ -7,6 +7,7 @@ import com.satori.rtm.model.AnyJson;
 import com.satori.rtm.model.SubscriptionData;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,11 @@ public class TwitterReader {
             .build();
     private String channel = Engine.getConfigs().get("twitterReader.channel");
     private long received = 0;
+
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput());
+        new TwitterReaderService().start();
+    }
 
     public TwitterReader() {
         String topicName = Engine.getConfigs().get("twitterReader.kafka.topicName");
