@@ -12,6 +12,8 @@
         <module>crawler</module>
         <module>engine</module>
         <module>webserver</module>
+        <module>twitterReader</module>
+        <module>newsReader</module>
     </modules>
 
     <properties>
@@ -48,40 +50,6 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.7</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.3.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.9.4</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.satori</groupId>
-            <artifactId>satori-sdk-java</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jetty.aggregate</groupId>
-            <artifactId>jetty-all</artifactId>
-            <version>9.4.10.v20180503</version>
-            <type>pom</type>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.rometools</groupId>
-            <artifactId>rome</artifactId>
-            <version>1.11.0</version>
-        </dependency>
-
 
     </dependencies>
 
