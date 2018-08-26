@@ -1,8 +1,7 @@
 .idea
 target
-search-engine.log
+search-in.nimbo.isDoing.searchEngine.engine.log
 seed.lock
-kafka.log
-counter.log
+in.nimbo.isDoing.searchEngine.kafka.log
+*.log
 dependency-reduced-pom.xml
-output.log

@@ -28,7 +28,7 @@ public class Persister implements Runnable {
 
         topicName = Engine.getConfigs().get("newsReader.persister.kafka.topicName");
         brokers = Engine.getConfigs().get("newsReader.persister.kafka.brokers");
-        producerClientId = Engine.getConfigs().get("newsReader.persister.kafka.producerClientId", "NewsReader Kafka UrlQueue");
+        producerClientId = Engine.getConfigs().get("newsReader.persister.in.nimbo.isDoing.searchEngine.kafka.producerClientId", "NewsReader Kafka UrlQueue");
         producer = new KafkaProducerController(brokers, producerClientId, topicName);
 
 
