@@ -13,37 +13,37 @@ public class HBaseDBPersisterTest {
             @Override
             public String get(String key) {
                 switch (key) {
-                    case "crawler.persister.db.hbase.crawledLink.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.tableName":
                         return "crawledLink";
 
-                    case "crawler.persister.db.hbase.crawledLink.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.columnFamily":
                         return "partition";
 
-                    case "crawler.persister.db.hbase.crawledLink.qualifier":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.qualifier":
                         return "number";
 
 
-                    case "crawler.persister.db.hbase.pages.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.tableName":
                         return "pages";
 
-                    case "crawler.persister.db.hbase.pages.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.columnFamily":
                         return "data";
 
-                    case "crawler.persister.db.hbase.pages.qualifiers":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.qualifiers":
                         return "link;context";
 
 
-                    case "crawler.persister.db.hbase.backLinks.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.backLinks.tableName":
                         return "backLinks";
 
-                    case "crawler.persister.db.hbase.backLinks.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.backLinks.columnFamily":
                         return "links";
 
 
-                    case "hbase.site":
-                        return "hbase-site.xml";
+                    case "in.nimbo.isDoing.searchEngine.hbase.site":
+                        return "in.nimbo.isDoing.searchEngine.hbase-site.xml";
 
-                    case "crawler.persister.db.hbase.flushNumberLimit":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.flushNumberLimit":
                         return "150";
                 }
                 throw new RuntimeException();
@@ -52,37 +52,37 @@ public class HBaseDBPersisterTest {
             @Override
             public String get(String key, String value) {
                 switch (key) {
-                    case "crawler.persister.db.hbase.crawledLink.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.tableName":
                         return "crawledLink";
 
-                    case "crawler.persister.db.hbase.crawledLink.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.columnFamily":
                         return "partition";
 
-                    case "crawler.persister.db.hbase.crawledLink.qualifier":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.crawledLink.qualifier":
                         return "number";
 
 
-                    case "crawler.persister.db.hbase.pages.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.tableName":
                         return "pages";
 
-                    case "crawler.persister.db.hbase.pages.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.columnFamily":
                         return "data";
 
-                    case "crawler.persister.db.hbase.pages.qualifiers":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.qualifiers":
                         return "link;context";
 
 
-                    case "crawler.persister.db.hbase.backLinks.tableName":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.backLinks.tableName":
                         return "backLinks";
 
-                    case "crawler.persister.db.hbase.backLinks.columnFamily":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.backLinks.columnFamily":
                         return "links";
 
 
-                    case "hbase.site":
-                        return "hbase-site.xml";
+                    case "in.nimbo.isDoing.searchEngine.hbase.site":
+                        return "in.nimbo.isDoing.searchEngine.hbase-site.xml";
 
-                    case "crawler.persister.db.hbase.flushNumberLimit":
+                    case "crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.flushNumberLimit":
                         return "150";
                 }
                 throw new RuntimeException();
