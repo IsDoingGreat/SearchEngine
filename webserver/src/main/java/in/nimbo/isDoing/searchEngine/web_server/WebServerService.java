@@ -3,6 +3,7 @@ package in.nimbo.isDoing.searchEngine.web_server;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -12,6 +13,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class WebServerService implements Service {
+
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput());
+        new WebServerService().start();
+    }
+
     private final static Logger logger = LoggerFactory.getLogger(WebServerService.class);
     Server server;
 
