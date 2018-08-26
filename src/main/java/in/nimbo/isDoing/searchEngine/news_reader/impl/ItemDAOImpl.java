@@ -37,7 +37,7 @@ public class ItemDAOImpl implements ItemDAO {
 
         itemsTableName = TableName.valueOf(Engine.getConfigs().get("newsReader.persister.db.hbase.items.tableName"));
         itemsColumnFamily = Engine.getConfigs().get("newsReader.persister.db.hbase.items.columnFamily");
-        maxSize = Integer.parseInt(Engine.getConfigs().get("newsReader.persister.db.hbase.items.maxSize","100"));
+        maxSize = Integer.parseInt(Engine.getConfigs().get("newsReader.persister.db.in.nimbo.isDoing.searchEngine.hbase.items.maxSize","100"));
         logger.info("Duplicate Checker Settings:\n" +
                 "itemsTableName : " + itemsTableName +
                 "\nitemsColumnFamily : " + itemsColumnFamily);

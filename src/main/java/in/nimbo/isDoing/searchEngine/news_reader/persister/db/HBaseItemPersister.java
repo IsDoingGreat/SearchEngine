@@ -37,7 +37,7 @@ public class HBaseItemPersister implements DBPersister {
         itemsColumnFamily = Engine.getConfigs().get("newsReader.persister.db.hbase.items.columnFamily");
 
         hbaseFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
-                "newsReader.persister.db.hbase.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
+                "newsReader.persister.db.in.nimbo.isDoing.searchEngine.hbase.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
 
         logger.info("HBaseItemPersister Created With Settings");
     }
