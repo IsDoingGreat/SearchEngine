@@ -70,7 +70,7 @@ public class Channel {
     @Override
     public String toString() {
         return "Channel{" +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", rssLink=" + rssLink +
                 ", link='" + link + '\'' +
                 ", lastUpdate=" + lastUpdate +
