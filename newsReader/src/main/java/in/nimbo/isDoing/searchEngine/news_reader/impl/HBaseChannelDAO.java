@@ -60,14 +60,15 @@ public class HBaseChannelDAO implements ChannelDAO {
             for (Result res : table.getScanner(scan)) {
                 String rssLink = Bytes.toString(res.getRow());
                 String name = Bytes.toString(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("name")));
-//                long lastUpdate = Bytes.toLong(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("lastUpdate")));
-                long lastUpdate = 0;
+                long lastUpdate = Bytes.toLong(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("lastUpdate")));
+//                long lastUpdate = 0;
                 cache.put(rssLink, new Channel(name, new URL(rssLink), lastUpdate));
                 loaded++;
                 if (loaded % 10 == 0) {
                     Engine.getOutput().show(loaded + " Cache Entries loaded!");
                 }
             }
+            Engine.getOutput().show(cache.toString());
             Engine.getOutput().show(loaded + " Cache Entries loaded!");
 
         } catch (IOException e) {
