@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.Objects;
 
 public class Channel {
-    private Integer id;
     private String name;
     private URL rssLink;
     private String link;
@@ -20,24 +19,12 @@ public class Channel {
     }
 
 
-    public Channel(String name, URL rssLink, long lastUpdate, String link) {
-        this(null, name, rssLink, lastUpdate, link);
-    }
 
-    public Channel(Integer id, String name, URL rssLink, long lastUpdate, String link) {
-        this.id = id;
+    public Channel(String name, URL rssLink, long lastUpdate, String link) {
         this.name = name;
         this.rssLink = rssLink;
         this.link = link;
         this.lastUpdate = lastUpdate;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -83,7 +70,6 @@ public class Channel {
     @Override
     public String toString() {
         return "Channel{" +
-                "id=" + id +
                 ", name='" + name + '\'' +
                 ", rssLink=" + rssLink +
                 ", link='" + link + '\'' +
