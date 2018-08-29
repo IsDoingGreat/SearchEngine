@@ -7,6 +7,7 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ItemDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
@@ -24,7 +25,7 @@ import java.util.Date;
 
 public class SiteCrawler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(SiteCrawler.class);
-    private final int TIMEOUT = 3000;
+    private final int TIMEOUT = 10000000;
     private ChannelDAO channelDAO;
     private ItemDAO itemDAO;
     private URL urlAddress;
@@ -74,7 +75,7 @@ public class SiteCrawler implements Runnable {
                     logger.debug("failed to load fullText for item   {}, for more information enable debug level", item.getTitle());
                     logger.debug("error", e);
                     logger.trace("Printing Item : {}", item);
-                }
+                    }
 
             }
         } catch (Exception e) {
@@ -122,7 +123,8 @@ public class SiteCrawler implements Runnable {
 
     String extractTextAutomatically(URL link) throws BoilerpipeProcessingException, IOException {
         Connection.Response response = fetchSite(link);
-        return ArticleExtractor.INSTANCE.getText(response.body());
+
+        return response.parse().body().text();
     }
 
     Connection.Response fetchSite(URL link) throws IOException {
