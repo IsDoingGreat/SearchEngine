@@ -51,7 +51,8 @@ public class ElasticItemPersister implements DBPersister {
         indexRequest.source(
                 "title", item.getTitle(),
                 "url", item.getLink().toExternalForm(),
-                "text", item.getText()
+                "text", item.getText(),
+                "date", item.getDate()
         );
 
         elasticBulkRequest.add(indexRequest);
