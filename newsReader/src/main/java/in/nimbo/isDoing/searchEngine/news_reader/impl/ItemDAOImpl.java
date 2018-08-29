@@ -69,6 +69,7 @@ public class ItemDAOImpl implements ItemDAO {
     public void insertItem(Item item) throws Exception {
         cache.put(item.getLink().toExternalForm(), Boolean.TRUE);
         queue.put(item);
+        Engine.getOutput().show(item.toString());
     }
 
 }
