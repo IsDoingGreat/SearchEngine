@@ -27,18 +27,16 @@ public class NewsReaderService implements Service {
     private ItemDAO itemDAO = new ItemDAOImpl(queue);
     private Persister persister = new Persister(queue);
     private boolean started = false;
+    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
+        Thread thread = Executors.defaultThreadFactory().newThread(r);
+        thread.setDaemon(false);
+        return thread;
+    });
 
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput());
         new NewsReaderService().start();
     }
-
-    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
-        Thread thread = Executors.defaultThreadFactory().newThread(r);
-        thread.setDaemon(true);
-        return thread;
-    });
-
 
     public void setChannelDAO(ChannelDAO channelDAO) {
         this.channelDAO = channelDAO;
@@ -57,7 +55,7 @@ public class NewsReaderService implements Service {
 
 
         started = true;
-        executorService.scheduleAtFixedRate(new UpdaterThread(), 0, 30, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(new UpdaterThread(), 0, 31, TimeUnit.SECONDS);
         executorService.schedule(persister, 0, TimeUnit.SECONDS);
     }
 
@@ -89,10 +87,11 @@ public class NewsReaderService implements Service {
 
         @Override
         public void run() {
+            Engine.getOutput().show("Start UpdaterThread at: " + String.valueOf(new Date().getTime()));
             try {
-                List<Channel> channels = channelDAO.getChannelsUpdatedBefore(2);
+                List<Channel> channels = channelDAO.getChannelsUpdatedBefore(1);
                 for (Channel channel : channels) {
-                    logger.info("Scheduled Channel Crawling Started for {}", channel.getName());
+                    logger.info("Scheduled Channel Crawling Started for {} ", channel.getName());
                     channel.setLastUpdate(new Date().getTime());
                     channelDAO.updateChannelLastDate(channel);
                     crawl(channel.getRssLink());
