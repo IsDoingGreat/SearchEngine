@@ -54,6 +54,7 @@ public class Persister implements Runnable {
             //Trying to free Blocking Queue...
             Item item;
             while ((item = queue.poll()) != null) {
+                producer.produce(item.getLink().toExternalForm(), item.getText());
                 elasticItemPersister.persist(item);
                 hBaseItemPersister.persist(item);
                 if (queue.isEmpty()) {
