@@ -35,7 +35,7 @@ public class HBaseChannelDAO implements ChannelDAO {
 
         channelsTableName = TableName.valueOf(Engine.getConfigs().get("newsReader.persister.db.hbase.channels.tableName"));
         channelsColumnFamily = Engine.getConfigs().get("newsReader.persister.db.hbase.channels.columnFamily");
-        logger.info("Duplicate Checker Settings:\n" +
+        logger.info("HBaseChannelDAO Settings:\n" +
                 "channelsTableName : " + channelsTableName +
                 "\nchannelsColumnFamily : " + channelsColumnFamily);
 
@@ -46,12 +46,12 @@ public class HBaseChannelDAO implements ChannelDAO {
             throw new IllegalStateException(e);
         }
 
-        loadFromHbase();
+        loadFromHBase();
 
         logger.info("ChannelDAO Created");
     }
 
-    private void loadFromHbase() {
+    private void loadFromHBase() {
         try {
             Scan scan = new Scan();
             int loaded = 0;
@@ -61,14 +61,12 @@ public class HBaseChannelDAO implements ChannelDAO {
                 String rssLink = Bytes.toString(res.getRow());
                 String name = Bytes.toString(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("name")));
                 long lastUpdate = Bytes.toLong(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("lastUpdate")));
-//                long lastUpdate = 0;
                 cache.put(rssLink, new Channel(name, new URL(rssLink), lastUpdate));
                 loaded++;
                 if (loaded % 10 == 0) {
                     Engine.getOutput().show(loaded + " Cache Entries loaded!");
                 }
             }
-            Engine.getOutput().show(cache.toString());
             Engine.getOutput().show(loaded + " Cache Entries loaded!");
 
         } catch (IOException e) {
@@ -110,7 +108,7 @@ public class HBaseChannelDAO implements ChannelDAO {
         List<Channel> channels = new ArrayList<>();
         long now = new Date().getTime();
         for (Channel channel : cache.values()) {
-            if (((now - channel.getLastUpdate()) / 60) > minutes)
+            if (((now - channel.getLastUpdate()) / (1000.0 * 60.0)) > minutes)
                 channels.add(channel);
         }
         return channels;
@@ -130,7 +128,6 @@ public class HBaseChannelDAO implements ChannelDAO {
             table.close();
         } catch (Exception e) {
             e.printStackTrace();
-
         }
     }
 }
