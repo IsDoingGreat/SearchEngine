@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class WebPage implements Page {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
@@ -20,7 +20,7 @@ public class WebPage implements Page {
     private Document document;
     private URL url;
     private String text;
-    private Set<String> outgoingUrls;
+    private Map<String, String> outgoingUrls;
     private String title;
 
     public WebPage(String body, URL url) {
@@ -59,13 +59,13 @@ public class WebPage implements Page {
 
     @Override
     public String getText() {
-        if(text != null)
+        if (text != null)
             return text;
 
         Objects.requireNonNull(document);
         Element body = document.body();
         if (body != null)
-            return text =body.text();
+            return text = body.text();
         return text = "";
     }
 
@@ -74,7 +74,7 @@ public class WebPage implements Page {
         if (title != null)
             return title;
         Objects.requireNonNull(document);
-        return title =  document.title();
+        return title = document.title();
     }
 
     @Override
@@ -93,21 +93,21 @@ public class WebPage implements Page {
     }
 
     @Override
-    public Set<String> getOutgoingUrls() {
+    public Map<String, String> getOutgoingUrls() {
         if (outgoingUrls != null)
             return outgoingUrls;
 
         Objects.requireNonNull(document);
-        Set<String> urls = new HashSet<>();
+        Map<String, String> urls = new HashMap<>();
         Elements links = document.select("a[href]");
         String externalForm = this.url.toExternalForm();
         for (Element link : links) {
             String url = link.attr("abs:href");
 
-            if (url.contains("#") || url.contains("?utm") || url.trim().isEmpty() || url.equals(externalForm))
+            if (!url.startsWith("http") || url.trim().isEmpty() || url.equals(externalForm))
                 continue;
 
-            urls.add(url);
+            urls.put(url, link.text());
         }
 
         return outgoingUrls = urls;
@@ -115,7 +115,7 @@ public class WebPage implements Page {
 
     /**
      * @return language code
-     * @throws in.nimbo.isDoing.searchEngine.crawler.page.LanguageDetector.LanguageNotDetected if language is not detected
+     * @throws LanguageDetector.LanguageNotDetected if language is not detected
      */
     @Override
     public String getLang() {

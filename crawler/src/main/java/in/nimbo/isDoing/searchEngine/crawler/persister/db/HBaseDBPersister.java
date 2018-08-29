@@ -13,17 +13,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class HBaseDBPersister implements DBPersister {
     private static final Logger logger = LoggerFactory.getLogger(HBaseDBPersister.class);
     private static final String DEFAULT_FLUSH_NUMBER = "150";
 
     private Connection connection;
-//    private List<Put> pagesBulkPut;
-//    private TableName pagesTableName;
-//    private String pagesColumnFamily;
-//    private String[] pagesQualifiers;
-
     private List<Put> backLinkBulkPut;
     private TableName backLinkTableName;
     private String backLinkColumnFamily;
@@ -35,11 +32,6 @@ public class HBaseDBPersister implements DBPersister {
         logger.info("Creating HBaseItemPersister...");
 
         connection = HBaseClient.getConnection();
-
-//        pagesBulkPut = new ArrayList<>();
-//        pagesTableName = TableName.valueOf(Engine.getConfigs().get("crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.tableName"));
-//        pagesColumnFamily = Engine.getConfigs().get("crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.columnFamily");
-//        pagesQualifiers = Engine.getConfigs().get("crawler.persister.db.in.nimbo.isDoing.searchEngine.hbase.pages.qualifiers").split(";");
 
         backLinkBulkPut = new ArrayList<>();
         backLinkTableName = TableName.valueOf(Engine.getConfigs().get("crawler.persister.db.hbase.backLinks.tableName"));
@@ -57,22 +49,20 @@ public class HBaseDBPersister implements DBPersister {
         String rowKey = HBaseClient.getInstance().generateRowKey(page.getUrl());
         byte[] rowKeyBytes = Bytes.toBytes(rowKey);
 
-//        Put pagePut = new Put(rowKeyBytes);
-//        pagePut.addColumn(Bytes.toBytes(pagesColumnFamily), Bytes.toBytes(pagesQualifiers[0]), Bytes.toBytes(page.getUrl().toExternalForm()));
-//        pagePut.addColumn(Bytes.toBytes(pagesColumnFamily), Bytes.toBytes(pagesQualifiers[1]), Bytes.toBytes(page.getBody()));
-//        pagesBulkPut.add(pagePut);
+
+        Set<Map.Entry<String, String>> entries = page.getOutgoingUrls().entrySet();
+        if (entries.size() == 0)
+            return;
 
         Put backLinkPut = new Put(rowKeyBytes);
 
-        int index = 0;
         byte[] backLinkCFBytes = Bytes.toBytes(backLinkColumnFamily);
-        for (String link : page.getOutgoingUrls()) {
-            backLinkPut.addColumn(backLinkCFBytes, Bytes.toBytes(index), Bytes.toBytes(link));
-            index++;
+        for (Map.Entry<String, String> entry : entries) {
+            backLinkPut.addColumn(backLinkCFBytes, Bytes.toBytes(entry.getKey()), Bytes.toBytes(entry.getValue()));
         }
-        if (index > 0) {
-            backLinkBulkPut.add(backLinkPut);
-        }
+
+        backLinkBulkPut.add(backLinkPut);
+
         flushIfNeeded();
     }
 
@@ -85,15 +75,11 @@ public class HBaseDBPersister implements DBPersister {
     @Override
     public void flush() throws Exception {
         if (backLinkBulkPut.size() > 0) {
-//            Table pagesTable = connection.getTable(pagesTableName);
-//            pagesTable.put(pagesBulkPut);
-//            pagesTable.close();
 
             Table backLinkTable = connection.getTable(backLinkTableName);
             backLinkTable.put(backLinkBulkPut);
             backLinkTable.close();
 
-//            pagesBulkPut.clear();
             backLinkBulkPut.clear();
         }
     }

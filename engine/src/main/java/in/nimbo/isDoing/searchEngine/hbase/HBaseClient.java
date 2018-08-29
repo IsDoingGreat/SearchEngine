@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Map;
 
 public class HBaseClient implements HaveStatus {
@@ -31,13 +32,13 @@ public class HBaseClient implements HaveStatus {
 
     private HBaseClient() {
         String hbaseSite = Engine.getConfigs().get("hbase.site");
-        URL resource = this.getClass().getClassLoader().getResource(hbaseSite);
-        if (resource == null) {
-            throw new NullPointerException("HBase site null");
+        java.nio.file.Path hbaseFile = Paths.get(hbaseSite);
+        if (!hbaseFile.toFile().exists()) {
+            throw new NullPointerException("HBase site not exists");
         }
 
         configuration = HBaseConfiguration.create();
-        configuration.addResource(new Path(resource.getPath()));
+        configuration.addResource(new Path(hbaseFile.toAbsolutePath().toString()));
 
         try {
             HBaseAdmin.available(configuration);
