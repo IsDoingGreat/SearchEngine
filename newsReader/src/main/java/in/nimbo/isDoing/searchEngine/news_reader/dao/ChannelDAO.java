@@ -12,7 +12,6 @@ public interface ChannelDAO {
 
     void updateChannelLastDate(Channel channel) throws Exception;
 
-
     List<Channel> getChannelsUpdatedBefore(int minutes) throws Exception;
 
     void stop();
