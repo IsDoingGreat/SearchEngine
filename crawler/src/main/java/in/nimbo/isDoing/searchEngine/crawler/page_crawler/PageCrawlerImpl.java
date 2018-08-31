@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class PageCrawlerImpl implements PageCrawler {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerImpl.class);
+    private final static Logger pageInfoLogger = LoggerFactory.getLogger("PageInfo");
     private PageCrawlerController controller;
 
     public PageCrawlerImpl(PageCrawlerController controller) {
@@ -30,7 +31,7 @@ public class PageCrawlerImpl implements PageCrawler {
                     normalizedLink = NormalizeURL.normalize(link);
                     url = new URL(normalizedLink);
                 } catch (MalformedURLException e) {
-                    logger.trace("link is not valid {}", link);
+                    pageInfoLogger.trace("link is not valid {}", link);
                     continue;
                 }
 
@@ -59,7 +60,7 @@ public class PageCrawlerImpl implements PageCrawler {
                         continue;
                     }
                 } catch (Exception e) {
-                    //logger.trace("page fetch exception  : " + link, e);
+                    pageInfoLogger.trace("page fetch exception  : " + link, e);
                     controller.getCounter().increment(Counter.States.FETCHER_ERROR);
                     continue;
                 }
