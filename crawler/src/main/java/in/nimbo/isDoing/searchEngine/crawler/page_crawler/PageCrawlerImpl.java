@@ -31,7 +31,7 @@ public class PageCrawlerImpl implements PageCrawler {
                     normalizedLink = NormalizeURL.normalize(link);
                     url = new URL(normalizedLink);
                 } catch (MalformedURLException e) {
-                    pageInfoLogger.trace("link is not valid {}", link);
+                    pageInfoLogger.info("link is not valid {}", link);
                     continue;
                 }
 
@@ -60,7 +60,7 @@ public class PageCrawlerImpl implements PageCrawler {
                         continue;
                     }
                 } catch (Exception e) {
-                    pageInfoLogger.trace("page fetch exception  : " + link, e);
+                    pageInfoLogger.trace("page fetch exception  : " + link + "\n "+ e.getMessage());
                     controller.getCounter().increment(Counter.States.FETCHER_ERROR);
                     continue;
                 }
