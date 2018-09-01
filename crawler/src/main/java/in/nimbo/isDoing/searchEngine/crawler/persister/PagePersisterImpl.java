@@ -13,7 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PagePersisterImpl implements PagePersister, HaveStatus {
@@ -23,7 +26,7 @@ public class PagePersisterImpl implements PagePersister, HaveStatus {
     private static final int DEFAULT_QUEUE_SIZE = 300;
 
     private BlockingQueue<Page> pageQueue;
-    private ExecutorService persisterExecutor;
+    private ThreadPoolExecutor persisterExecutor;
     private int persisterThreadNumber;
     private int pageQueueSize;
     private Runnable[] persisterThreads;
@@ -88,6 +91,8 @@ public class PagePersisterImpl implements PagePersister, HaveStatus {
     @Override
     public Status status() {
         Status status = new Status("Persister", "");
+        status.addLine("Page Queue Size: "+pageQueue.size());
+        status.addLine("Live Persister Threads: "+ persisterExecutor.getActiveCount());
         status.addSubSections(ElasticClient.getInstance().status());
         status.addSubSections(HBaseClient.getInstance().status());
         return status;
