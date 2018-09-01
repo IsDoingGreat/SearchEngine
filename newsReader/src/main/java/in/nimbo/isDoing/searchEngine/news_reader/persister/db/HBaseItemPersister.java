@@ -52,10 +52,7 @@ public class HBaseItemPersister implements DBPersister {
 //        itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("text"), Bytes.toBytes(item.getText()));
         itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("time"), Bytes.toBytes(item.getDate().getTime()));
 
-
-
         itemBulkPut.add(itemPut);
-
 
         flushIfNeeded();
     }
