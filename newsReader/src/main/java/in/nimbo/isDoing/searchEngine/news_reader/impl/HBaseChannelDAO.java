@@ -4,6 +4,7 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -12,6 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +30,7 @@ public class HBaseChannelDAO implements ChannelDAO {
     private String channelsColumnFamily;
     private ConcurrentHashMap<String, Channel> cache;
 
-    public HBaseChannelDAO() {
+    public HBaseChannelDAO() throws IOException {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
         cache = new ConcurrentHashMap<>();
         logger.info("Creating HBaseChannelDAO...");
@@ -40,7 +44,6 @@ public class HBaseChannelDAO implements ChannelDAO {
                 "\nchannelsColumnFamily : " + channelsColumnFamily);
 
 
-
         try {
             table = connection.getTable(channelsTableName);
         } catch (IOException e) {
@@ -48,7 +51,7 @@ public class HBaseChannelDAO implements ChannelDAO {
             throw new IllegalStateException(e);
         }
 
-        loadFromHBase();
+        loadFromFile();
 
         logger.info("ChannelDAO Created");
     }
@@ -75,6 +78,27 @@ public class HBaseChannelDAO implements ChannelDAO {
             logger.error("ERROR DURING LOADING CACHE FROM HBASE", e);
             throw new IllegalStateException(e);
         }
+    }
+
+    private void loadFromFile() throws IOException {
+//                cache.put(rssLink, new Channel(name, new URL(rssLink), lastUpdate));
+        Path seed = Paths.get("./newsSeeds.txt").toAbsolutePath();
+        if (!Files.exists(seed))
+            throw new IllegalStateException("Seed Not Exists");
+
+        List<String> list = Files.readAllLines(seed);
+        for (String line : list) {
+            String[] tokens = line.split(";");
+            if (tokens.length != 3)
+                Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + tokens);
+
+            try {
+                cache.put(tokens[0], new Channel(tokens[1], new URL(tokens[0]), Long.valueOf(tokens[2])));
+            } catch (Exception e) {
+                Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + e.getMessage());
+            }
+        }
+
     }
 
     @Override
@@ -129,7 +153,7 @@ public class HBaseChannelDAO implements ChannelDAO {
             table.put(puts);
             table.close();
         } catch (Exception e) {
-            logger.error("Failed to stop channelDAO" , e);
+            logger.error("Failed to stop channelDAO", e);
         }
     }
 }

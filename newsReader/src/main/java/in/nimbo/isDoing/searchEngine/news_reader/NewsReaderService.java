@@ -15,6 +15,7 @@ import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +36,7 @@ public class NewsReaderService implements Service {
     private int executorServicePeriod;
     private int updaterPeriod;
 
-    public NewsReaderService(){
+    public NewsReaderService() throws IOException {
         Engine.getOutput().show("Creating NewsReaderService...");
         queue = new LinkedBlockingQueue<>();
         channelDAO = new HBaseChannelDAO();
