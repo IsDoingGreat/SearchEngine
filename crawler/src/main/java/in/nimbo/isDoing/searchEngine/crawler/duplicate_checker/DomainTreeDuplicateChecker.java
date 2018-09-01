@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DomainTreeDuplicateChecker implements DuplicateChecker, HaveStatus {
-    public static final int HBASE_SCAN_CACHE_NUMBER = 2000;
+    private static final int HBASE_SCAN_CACHE_NUMBER = 2000;
     private final static Logger logger = LoggerFactory.getLogger(DomainTreeDuplicateChecker.class);
     private final static Object OBJECT = new Object();
     private ConcurrentHashMap<String, ConcurrentHashMap.KeySetView<String, ?>> cache;

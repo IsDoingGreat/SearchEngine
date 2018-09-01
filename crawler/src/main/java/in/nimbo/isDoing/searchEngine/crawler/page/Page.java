@@ -1,7 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.page;
 
 import java.net.URL;
-import java.util.Set;
+import java.util.Map;
 
 public interface Page {
     void parse();
@@ -18,7 +18,7 @@ public interface Page {
 
     String getDescription();
 
-    Set<String> getOutgoingUrls();
+    Map<String, String> getOutgoingUrls();
 
     String getLang();
 }

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class PersisterThread implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(PersisterThread.class);
+    private static final int TOTAL_DELAY = 10000;
     ElasticDBPersister elasticDBPersister;
     HBaseDBPersister hBaseDBPersister;
     private PagePersister persister;
@@ -23,6 +24,7 @@ public class PersisterThread implements Runnable {
     @Override
     public void run() {
         try {
+            Thread.sleep((long) (Math.random() * TOTAL_DELAY));
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Page page = persister.getPageQueue().take();

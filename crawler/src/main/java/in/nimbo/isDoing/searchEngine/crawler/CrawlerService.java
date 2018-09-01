@@ -8,6 +8,7 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
+import in.nimbo.isDoing.searchEngine.web_server.WebServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class CrawlerService implements Service {
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput());
         Engine.getInstance().startService(new CrawlerService());
+        Engine.getInstance().startService(new WebServerService());
     }
 
     @Override

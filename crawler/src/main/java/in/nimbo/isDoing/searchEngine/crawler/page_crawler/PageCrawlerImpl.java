@@ -8,10 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
+import java.util.Map;
 
 public class PageCrawlerImpl implements PageCrawler {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerImpl.class);
+    private final static Logger pageInfoLogger = LoggerFactory.getLogger("PageInfo");
     private PageCrawlerController controller;
 
     public PageCrawlerImpl(PageCrawlerController controller) {
@@ -25,10 +26,12 @@ public class PageCrawlerImpl implements PageCrawler {
                 String link = controller.getQueue().take();
                 URL url;
 
+                String normalizedLink;
                 try {
-                    url = new URL(link);
+                    normalizedLink = NormalizeURL.normalize(link);
+                    url = new URL(normalizedLink);
                 } catch (MalformedURLException e) {
-                    logger.trace("link is not valid {}", link);
+                    pageInfoLogger.info("link is not valid {}", link);
                     continue;
                 }
 
@@ -57,14 +60,14 @@ public class PageCrawlerImpl implements PageCrawler {
                         continue;
                     }
                 } catch (Exception e) {
-                    //logger.trace("page fetch exception  : " + link, e);
+                    pageInfoLogger.trace("page fetch exception  : " + link + "\n "+ e.getMessage());
                     controller.getCounter().increment(Counter.States.FETCHER_ERROR);
                     continue;
                 }
 
-                Set<String> outgoingUrls = page.getOutgoingUrls();
+                Map<String, String> outgoingUrls = page.getOutgoingUrls();
                 //logger.trace("{} Urls Found in link {}", outgoingUrls.size(), link);
-                for (String outgoingUrl : outgoingUrls) {
+                for (String outgoingUrl : outgoingUrls.keySet()) {
                     controller.getURLQueue().push(outgoingUrl);
                 }
 
