@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.Objects;
 
 public class Item {
-    private Integer id;
     private String title;
     private URL link;
     private String desc;
@@ -17,12 +16,8 @@ public class Item {
         this(title, link, desc, null, date, channel);
     }
 
-    public Item(String title, URL link, String desc, String text, Date date, Channel channel) {
-        this(null, title, link, desc, text, date, channel);
-    }
 
-    public Item(Integer id, String title, URL link, String desc, String text, Date date, Channel channel) {
-        this.id = id;
+    public Item(String title, URL link, String desc, String text, Date date, Channel channel) {
         this.title = title;
         this.link = link;
         this.desc = desc;
@@ -31,13 +26,6 @@ public class Item {
         this.channel = channel;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;
@@ -104,7 +92,6 @@ public class Item {
     @Override
     public String toString() {
         return "Item{" +
-                "id=" + id +
                 ", title='" + title + '\'' +
                 ", link=" + link +
                 ", text='" + text + '\'' +

@@ -58,6 +58,9 @@ public class SiteCrawler implements Runnable {
             for (SyndEntry entry : feed.getEntries()) {
                 String description = entry.getDescription() != null ? entry.getDescription().getValue() : "";
 
+                if (entry.getPublishedDate() == null)
+                    continue;
+
                 Item item = new Item(entry.getTitle(), new URL(entry.getLink()), description, entry.getPublishedDate(), channel);
 
                 logger.debug("Checking item {}", item.getTitle());
