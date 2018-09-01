@@ -12,6 +12,7 @@ import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ItemDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,7 +26,7 @@ import java.util.Date;
 
 public class SiteCrawler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(SiteCrawler.class);
-    private final int TIMEOUT = 10000000;
+    private final int TIMEOUT = 5000;
     private ChannelDAO channelDAO;
     private ItemDAO itemDAO;
     private URL urlAddress;
@@ -79,11 +80,10 @@ public class SiteCrawler implements Runnable {
                     logger.debug("error", e);
                     logger.trace("Printing Item : {}", item);
                     }
-
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            System.err.println("crawling failed for site" + urlAddress + "! for more information see rssReader.log");
+            Engine.getOutput().show(Output.Type.ERROR, "crawling failed for site" + urlAddress + "! for more information see rssReader.log");
         }
 
     }
@@ -124,9 +124,8 @@ public class SiteCrawler implements Runnable {
         return text;
     }
 
-    String extractTextAutomatically(URL link) throws BoilerpipeProcessingException, IOException {
+    String extractTextAutomatically(URL link) throws IOException {
         Connection.Response response = fetchSite(link);
-
         return response.parse().body().text();
     }
 

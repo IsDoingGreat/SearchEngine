@@ -120,6 +120,7 @@ public class NewsReaderService implements Service {
 
             } catch (Exception e) {
                 logger.error("error in Channels Crawler Starter Thread", e);
+                Engine.getOutput().show(Output.Type.ERROR, e.getMessage());
             }
         }
 
