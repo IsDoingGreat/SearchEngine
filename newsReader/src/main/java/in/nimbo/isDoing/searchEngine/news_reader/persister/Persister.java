@@ -5,6 +5,7 @@ import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
 import in.nimbo.isDoing.searchEngine.news_reader.persister.db.ElasticItemPersister;
 import in.nimbo.isDoing.searchEngine.news_reader.persister.db.HBaseItemPersister;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +22,6 @@ public class Persister implements Runnable {
     private HBaseItemPersister hBaseItemPersister;
 
     public Persister(BlockingQueue<Item> queue) {
-
-
         logger.info("Creating Item Persister...");
         Engine.getOutput().show("Creating Persister...");
 
@@ -49,6 +48,7 @@ public class Persister implements Runnable {
                 }
             } catch (InterruptedException e) {
                 logger.info(Thread.currentThread() + "Interrupted... ");
+                Engine.getOutput().show(Thread.currentThread() + "Interrupted...");
             }
 
             //Trying to free Blocking Queue...
@@ -67,7 +67,8 @@ public class Persister implements Runnable {
             hBaseItemPersister.flush();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Persister Error: ", e);
+            Engine.getOutput().show(Output.Type.ERROR, e.getMessage());
         }
     }
 }
