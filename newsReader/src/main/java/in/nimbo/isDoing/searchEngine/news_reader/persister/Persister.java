@@ -20,16 +20,18 @@ public class Persister implements Runnable {
     private KafkaProducerController producer;
     private ElasticItemPersister elasticItemPersister;
     private HBaseItemPersister hBaseItemPersister;
+    private boolean kafkaEnable;
+
 
     public Persister(BlockingQueue<Item> queue) {
         logger.info("Creating Item Persister...");
         Engine.getOutput().show("Creating Persister...");
 
-        topicName = Engine.getConfigs().get("newsReader.persister.kafka.topicName");
-        brokers = Engine.getConfigs().get("newsReader.persister.kafka.brokers");
-        producerClientId = Engine.getConfigs().get("newsReader.persister.in.nimbo.isDoing.searchEngine.kafka.producerClientId", "NewsReader Kafka UrlQueue");
-        producer = new KafkaProducerController(brokers, producerClientId, topicName);
-
+//        topicName = Engine.getConfigs().get("newsReader.persister.kafka.topicName");
+//        brokers = Engine.getConfigs().get("newsReader.persister.kafka.brokers");
+//        producerClientId = Engine.getConfigs().get("newsReader.persister.in.nimbo.isDoing.searchEngine.kafka.producerClientId", "NewsReader Kafka UrlQueue");
+//        producer = new KafkaProducerController(brokers, producerClientId, topicName);
+//        kafkaEnable = Boolean.valueOf(Engine.getConfigs().get("newsReader.persister.kafka.enable"));
 
         this.queue = queue;
         elasticItemPersister = new ElasticItemPersister();
@@ -42,7 +44,7 @@ public class Persister implements Runnable {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Item item = queue.take();
-                    producer.produce(item.getLink().toExternalForm(), item.getText());
+//                    producer.produce(item.getLink().toExternalForm(), item.getText());
                     hBaseItemPersister.persist(item);
                     elasticItemPersister.persist(item);
                 }
@@ -54,7 +56,7 @@ public class Persister implements Runnable {
             //Trying to free Blocking Queue...
             Item item;
             while ((item = queue.poll()) != null) {
-                producer.produce(item.getLink().toExternalForm(), item.getText());
+//                producer.produce(item.getLink().toExternalForm(), item.getText());
                 elasticItemPersister.persist(item);
                 hBaseItemPersister.persist(item);
                 if (queue.isEmpty()) {
