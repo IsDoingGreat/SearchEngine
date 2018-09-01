@@ -11,6 +11,7 @@ import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
 import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
 import in.nimbo.isDoing.searchEngine.news_reader.persister.Persister;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,16 +23,37 @@ import java.util.concurrent.*;
 public class NewsReaderService implements Service {
     private static volatile NewsReaderService instance;
     final Logger logger = LoggerFactory.getLogger(NewsReaderService.class);
-    private BlockingQueue<Item> queue = new LinkedBlockingQueue<>();
-    private ChannelDAO channelDAO = new HBaseChannelDAO();
-    private ItemDAO itemDAO = new ItemDAOImpl(queue);
-    private Persister persister = new Persister(queue);
-    private boolean started = false;
-    private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10, r -> {
-        Thread thread = Executors.defaultThreadFactory().newThread(r);
-        thread.setDaemon(false);
-        return thread;
-    });
+
+    private BlockingQueue<Item> queue;
+    private ChannelDAO channelDAO;
+    private ItemDAO itemDAO;
+    private Persister persister;
+    private boolean started;
+    private ScheduledExecutorService executorService;
+
+    private int corePoolSize;
+    private int executorServicePeriod;
+    private int updaterPeriod;
+
+    public NewsReaderService(){
+        Engine.getOutput().show("Creating NewsReaderService...");
+        queue = new LinkedBlockingQueue<>();
+        channelDAO = new HBaseChannelDAO();
+        itemDAO = new ItemDAOImpl(queue);
+        persister = new Persister(queue);
+        started = false;
+
+        corePoolSize = Integer.parseInt(Engine.getConfigs().get("newsReader.corePoolSize"));
+        executorService = Executors.newScheduledThreadPool(corePoolSize, r -> {
+            Thread thread = Executors.defaultThreadFactory().newThread(r);
+            thread.setDaemon(false);
+            return thread;
+        });
+
+        executorServicePeriod = Integer.parseInt(Engine.getConfigs().get("newsReader.executorServicePeriod"));
+        updaterPeriod = Integer.parseInt(Engine.getConfigs().get("newsReader.updaterPeriod"));
+        Engine.getOutput().show("NewsReaderService Created Successfully...");
+    }
 
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput());
@@ -53,12 +75,10 @@ public class NewsReaderService implements Service {
         if (started)
             throw new IllegalStateException("Already Started");
 
-
         started = true;
-        executorService.scheduleAtFixedRate(new UpdaterThread(), 0, 31, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(new UpdaterThread(), 0, executorServicePeriod, TimeUnit.SECONDS);
         executorService.schedule(persister, 0, TimeUnit.SECONDS);
     }
-
 
     @Override
     public Status status() {
@@ -78,7 +98,8 @@ public class NewsReaderService implements Service {
             executorService.awaitTermination(5, TimeUnit.SECONDS);
             channelDAO.stop();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("Service stop error: ", e);
+            Engine.getOutput().show(Output.Type.ERROR, e.getMessage());
         }
     }
 
@@ -89,7 +110,7 @@ public class NewsReaderService implements Service {
         public void run() {
             Engine.getOutput().show("Start UpdaterThread at: " + String.valueOf(new Date().getTime()));
             try {
-                List<Channel> channels = channelDAO.getChannelsUpdatedBefore(1);
+                List<Channel> channels = channelDAO.getChannelsUpdatedBefore(updaterPeriod);
                 for (Channel channel : channels) {
                     logger.info("Scheduled Channel Crawling Started for {} ", channel.getName());
                     channel.setLastUpdate(new Date().getTime());
