@@ -29,7 +29,7 @@ public class HBaseChannelDAO implements ChannelDAO {
     public HBaseChannelDAO() {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
         cache = new ConcurrentHashMap<>();
-        logger.info("Creating CaffeineDuplicateChecker...");
+        logger.info("Creating HBaseChannelDAO...");
 
         connection = HBaseClient.getConnection();
 
@@ -38,6 +38,8 @@ public class HBaseChannelDAO implements ChannelDAO {
         logger.info("HBaseChannelDAO Settings:\n" +
                 "channelsTableName : " + channelsTableName +
                 "\nchannelsColumnFamily : " + channelsColumnFamily);
+
+
 
         try {
             table = connection.getTable(channelsTableName);
@@ -127,7 +129,7 @@ public class HBaseChannelDAO implements ChannelDAO {
             table.put(puts);
             table.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to stop channelDAO" , e);
         }
     }
 }
