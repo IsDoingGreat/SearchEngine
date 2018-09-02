@@ -1,1 +1,2 @@
 http://feeds.reuters.com/reuters/topNews;routers;1
+http://rss.cnn.com/rss/edition_world.rss;cnn;1

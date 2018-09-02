@@ -29,11 +29,15 @@ public class HBaseChannelDAO implements ChannelDAO {
     private TableName channelsTableName;
     private String channelsColumnFamily;
     private ConcurrentHashMap<String, Channel> cache;
+    private List<String> invalidChannels;
+    private String initSource;
 
     public HBaseChannelDAO() throws IOException {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
-        cache = new ConcurrentHashMap<>();
         logger.info("Creating HBaseChannelDAO...");
+
+        cache = new ConcurrentHashMap<>();
+        invalidChannels = new ArrayList<>();
 
         connection = HBaseClient.getConnection();
 
@@ -43,7 +47,6 @@ public class HBaseChannelDAO implements ChannelDAO {
                 "channelsTableName : " + channelsTableName +
                 "\nchannelsColumnFamily : " + channelsColumnFamily);
 
-
         try {
             table = connection.getTable(channelsTableName);
         } catch (IOException e) {
@@ -51,9 +54,16 @@ public class HBaseChannelDAO implements ChannelDAO {
             throw new IllegalStateException(e);
         }
 
-        loadFromFile();
+        initSource = Engine.getConfigs().get("newsReader.persister.db.hbase.channels.initSource");
+        if (initSource.equals("file")) {
+            loadFromFile();
+        } else if (initSource.equals("hbase")) {
+            loadFromHBase();
+        } else {
+            throw new IllegalStateException("Source of seen not valid");
+        }
 
-        logger.info("ChannelDAO Created");
+        logger.info("HBaseChannelDAO Created");
     }
 
     private void loadFromHBase() {
@@ -93,7 +103,11 @@ public class HBaseChannelDAO implements ChannelDAO {
                 Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + tokens);
 
             try {
-                cache.put(tokens[0], new Channel(tokens[1], new URL(tokens[0]), Long.valueOf(tokens[2])));
+                Engine.getOutput().show(Output.Type.INFO, tokens[0] + " exist in invalidChannels : " + String.valueOf(invalidChannels.contains(tokens[0])));
+
+                if (cache.get(tokens[0]) == null && !invalidChannels.contains(tokens[0])) {
+                    cache.put(tokens[0], new Channel(tokens[1], new URL(tokens[0]), Long.valueOf(tokens[2])));
+                }
             } catch (Exception e) {
                 Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + e.getMessage());
             }
@@ -155,5 +169,32 @@ public class HBaseChannelDAO implements ChannelDAO {
         } catch (Exception e) {
             logger.error("Failed to stop channelDAO", e);
         }
+    }
+
+    @Override
+    public void reload() {
+        try {
+            loadFromFile();
+        } catch (IOException e) {
+            // TODO: 9/1/18
+            logger.error("Failed to reload seed file ", e);
+            Engine.getOutput().show(Output.Type.ERROR, "Failed to reload seed file " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void removeChannel(Channel channel) {
+        if (cache.containsKey(channel.getRssLink().toExternalForm())) {
+            cache.remove(channel.getRssLink().toExternalForm());
+        }
+    }
+
+    @Override
+    public void insertInvalidChannel(Channel channel) {
+        if (!invalidChannels.contains(channel.getRssLink().toExternalForm())) {
+            Engine.getOutput().show(Output.Type.INFO, "Invalid channel : " + channel.getRssLink().toExternalForm());
+            invalidChannels.add(channel.getRssLink().toExternalForm());
+        }
+        removeChannel(channel);
     }
 }

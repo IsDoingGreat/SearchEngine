@@ -53,12 +53,13 @@ public class NewsReaderService implements Service {
 
         executorServicePeriod = Integer.parseInt(Engine.getConfigs().get("newsReader.executorServicePeriod"));
         updaterPeriod = Integer.parseInt(Engine.getConfigs().get("newsReader.updaterPeriod"));
+
         Engine.getOutput().show("NewsReaderService Created Successfully...");
     }
 
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput());
-        new NewsReaderService().start();
+        Engine.getInstance().startService(new NewsReaderService());
     }
 
     public void setChannelDAO(ChannelDAO channelDAO) {
@@ -66,15 +67,16 @@ public class NewsReaderService implements Service {
     }
 
     public void crawl(URL rssLink) {
-        SiteCrawler siteCrawler = new SiteCrawler(rssLink, channelDAO, itemDAO);
-        executorService.schedule(siteCrawler, 0, TimeUnit.NANOSECONDS);
+
+        executorService.schedule(new SiteCrawler(rssLink, channelDAO, itemDAO), 0, TimeUnit.NANOSECONDS);
         logger.debug("{} scheduled in executor service!", rssLink);
     }
 
     @Override
     public synchronized void start() {
-        if (started)
+        if (started) {
             throw new IllegalStateException("Already Started");
+        }
 
         started = true;
         executorService.scheduleAtFixedRate(new UpdaterThread(), 0, executorServicePeriod, TimeUnit.SECONDS);
@@ -93,6 +95,7 @@ public class NewsReaderService implements Service {
 
     @Override
     public void stop() {
+        Engine.getOutput().show("Stopping NewsReaderService");
         executorService.shutdownNow();
         try {
             Engine.getOutput().show("Waiting Five Second To Stop Threads....");
@@ -109,8 +112,9 @@ public class NewsReaderService implements Service {
 
         @Override
         public void run() {
-            Engine.getOutput().show("Start UpdaterThread at: " + String.valueOf(new Date().getTime()));
+            Engine.getOutput().show("Start UpdaterThread at: " + String.valueOf(new Date()));
             try {
+                channelDAO.reload();
                 List<Channel> channels = channelDAO.getChannelsUpdatedBefore(updaterPeriod);
                 for (Channel channel : channels) {
                     logger.info("Scheduled Channel Crawling Started for {} ", channel.getName());

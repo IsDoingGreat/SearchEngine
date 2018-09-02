@@ -5,8 +5,6 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import de.l3s.boilerpipe.BoilerpipeProcessingException;
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.news_reader.dao.ItemDAO;
@@ -43,12 +41,10 @@ public class SiteCrawler implements Runnable {
             SyndFeed feed = getSyndFeed();
 
             logger.info("feed reading was successful for site : {}," +
-                    "  {} items found!", feed.getTitle(), feed.getEntries().size());
+                    " {} items found! ", feed.getTitle(), feed.getEntries().size());
 
             logger.trace(feed.toString());
-            Channel channel;
-
-            channel = channelDAO.getChannel(urlAddress);
+            Channel channel = channelDAO.getChannel(urlAddress);
             if (channel == null) {
                 channel = new Channel(feed.getTitle(), urlAddress, new Date().getTime());
                 channelDAO.insertChannel(channel);
@@ -59,13 +55,16 @@ public class SiteCrawler implements Runnable {
             for (SyndEntry entry : feed.getEntries()) {
                 String description = entry.getDescription() != null ? entry.getDescription().getValue() : "";
 
-                if (entry.getPublishedDate() == null)
+                if (entry.getPublishedDate() == null) {
                     continue;
+                }
 
                 Item item = new Item(entry.getTitle(), new URL(entry.getLink()), description, entry.getPublishedDate(), channel);
 
                 logger.debug("Checking item {}", item.getTitle());
-                if (itemDAO.checkItemExists(item)) continue;
+                if (itemDAO.checkItemExists(item)) {
+                    continue;
+                }
 
                 try {
 
@@ -76,14 +75,15 @@ public class SiteCrawler implements Runnable {
                 } catch (IOException e) {
                     logger.warn(e.getMessage(), e);
                 } catch (Exception e) {
-                    logger.debug("failed to load fullText for item   {}, for more information enable debug level", item.getTitle());
+                    logger.debug("failed to load fullText for item   {}, for more information enable debug level ", item.getTitle());
                     logger.debug("error", e);
                     logger.trace("Printing Item : {}", item);
-                    }
+                }
             }
         } catch (Exception e) {
+            channelDAO.insertInvalidChannel(channelDAO.getChannel(urlAddress));
             logger.error(e.getMessage(), e);
-            Engine.getOutput().show(Output.Type.ERROR, "crawling failed for site" + urlAddress + "! for more information see rssReader.log");
+            Engine.getOutput().show(Output.Type.ERROR, "crawling failed for site " + urlAddress + "! for more information see rssReader.log");
         }
 
     }
