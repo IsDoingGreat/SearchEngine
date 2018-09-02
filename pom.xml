@@ -16,6 +16,7 @@
         <module>newsReader</module>
         <module>pageRank</module>
         <module>trend</module>
+        <module>backLinks</module>
     </modules>
 
     <properties>
