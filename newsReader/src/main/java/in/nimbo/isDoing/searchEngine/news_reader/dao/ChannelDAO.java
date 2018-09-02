@@ -15,4 +15,10 @@ public interface ChannelDAO {
     List<Channel> getChannelsUpdatedBefore(int minutes) throws Exception;
 
     void stop();
+
+    void reload();
+
+    void removeChannel(Channel channel);
+
+    void insertInvalidChannel(Channel channel);
 }
