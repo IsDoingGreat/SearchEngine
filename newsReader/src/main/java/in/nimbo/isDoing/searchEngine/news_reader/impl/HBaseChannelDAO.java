@@ -29,6 +29,7 @@ public class HBaseChannelDAO implements ChannelDAO {
     private TableName channelsTableName;
     private String channelsColumnFamily;
     private ConcurrentHashMap<String, Channel> cache;
+    private String initSource;
 
     public HBaseChannelDAO() throws IOException {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
@@ -43,7 +44,6 @@ public class HBaseChannelDAO implements ChannelDAO {
                 "channelsTableName : " + channelsTableName +
                 "\nchannelsColumnFamily : " + channelsColumnFamily);
 
-
         try {
             table = connection.getTable(channelsTableName);
         } catch (IOException e) {
@@ -51,9 +51,16 @@ public class HBaseChannelDAO implements ChannelDAO {
             throw new IllegalStateException(e);
         }
 
-        loadFromFile();
+        initSource = Engine.getConfigs().get("newsReader.persister.db.hbase.channels.initSource");
+        if (initSource.equals("file")) {
+            loadFromFile();
+        } else if (initSource.equals("hbase")) {
+            loadFromHBase();
+        } else {
+            throw new IllegalStateException("Source of seen not valid");
+        }
 
-        logger.info("ChannelDAO Created");
+        logger.info("HBaseChannelDAO Created");
     }
 
     private void loadFromHBase() {
