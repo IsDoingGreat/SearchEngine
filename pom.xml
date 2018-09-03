@@ -15,8 +15,8 @@
         <module>twitterReader</module>
         <module>newsReader</module>
         <module>pageRank</module>
-        <module>trend</module>
         <module>backLinks</module>
+        <module>newsTrend</module>
     </modules>
 
     <properties>
