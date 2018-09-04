@@ -1,9 +1,9 @@
-package in.nimbo.isDoing.searchEngine.news_reader.impl;
+package in.nimbo.isDoing.searchEngine.newsReader.impl;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
-import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
+import in.nimbo.isDoing.searchEngine.newsReader.dao.ChannelDAO;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Channel;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -74,9 +74,10 @@ public class HBaseChannelDAO implements ChannelDAO {
             byte[] channelsColumnFamilyBytes = Bytes.toBytes(channelsColumnFamily);
             for (Result res : table.getScanner(scan)) {
                 String rssLink = Bytes.toString(res.getRow());
+                String category = Bytes.toString(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("category")));
                 String name = Bytes.toString(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("name")));
                 long lastUpdate = Bytes.toLong(res.getValue(channelsColumnFamilyBytes, Bytes.toBytes("lastUpdate")));
-                cache.put(rssLink, new Channel(name, new URL(rssLink), lastUpdate));
+                cache.put(rssLink, new Channel(category, name, new URL(rssLink), lastUpdate));
                 loaded++;
                 if (loaded % 10 == 0) {
                     Engine.getOutput().show(loaded + " Cache Entries loaded!");
@@ -91,7 +92,8 @@ public class HBaseChannelDAO implements ChannelDAO {
     }
 
     private void loadFromFile() throws IOException {
-//                cache.put(rssLink, new Channel(name, new URL(rssLink), lastUpdate));
+        //file entry format {link;name;lastUpdate;category}
+
         Path seed = Paths.get("./newsSeeds.txt").toAbsolutePath();
         if (!Files.exists(seed))
             throw new IllegalStateException("Seed Not Exists");
@@ -99,14 +101,16 @@ public class HBaseChannelDAO implements ChannelDAO {
         List<String> list = Files.readAllLines(seed);
         for (String line : list) {
             String[] tokens = line.split(";");
-            if (tokens.length != 3)
+            if (tokens.length != 4) {
                 Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + tokens);
+                continue;
+            }
 
             try {
                 Engine.getOutput().show(Output.Type.INFO, tokens[0] + " exist in invalidChannels : " + String.valueOf(invalidChannels.contains(tokens[0])));
 
                 if (cache.get(tokens[0]) == null && !invalidChannels.contains(tokens[0])) {
-                    cache.put(tokens[0], new Channel(tokens[1], new URL(tokens[0]), Long.valueOf(tokens[2])));
+                    cache.put(tokens[0], new Channel(tokens[3], tokens[1], new URL(tokens[0]), Long.valueOf(tokens[2])));
                 }
             } catch (Exception e) {
                 Engine.getOutput().show(Output.Type.ERROR, "Not Valid " + e.getMessage());
@@ -120,6 +124,7 @@ public class HBaseChannelDAO implements ChannelDAO {
         cache.put(channel.getRssLink().toExternalForm(), channel);
         try {
             Put put = new Put(Bytes.toBytes(channel.getRssLink().toExternalForm()));
+            put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("category"), Bytes.toBytes(channel.getCategory()));
             put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("name"), Bytes.toBytes(channel.getName()));
             put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("lastUpdate"), Bytes.toBytes(channel.getLastUpdate()));
             table.put(put);
@@ -160,6 +165,7 @@ public class HBaseChannelDAO implements ChannelDAO {
             List<Put> puts = new ArrayList<>(cache.size());
             for (Map.Entry<String, Channel> entry : cache.entrySet()) {
                 Put put = new Put(Bytes.toBytes(entry.getValue().getRssLink().toExternalForm()));
+                put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("category"), Bytes.toBytes(entry.getValue().getCategory()));
                 put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("name"), Bytes.toBytes(entry.getValue().getName()));
                 put.addColumn(Bytes.toBytes(channelsColumnFamily), Bytes.toBytes("lastUpdate"), Bytes.toBytes(entry.getValue().getLastUpdate()));
                 puts.add(put);
@@ -176,7 +182,6 @@ public class HBaseChannelDAO implements ChannelDAO {
         try {
             loadFromFile();
         } catch (IOException e) {
-            // TODO: 9/1/18
             logger.error("Failed to reload seed file ", e);
             Engine.getOutput().show(Output.Type.ERROR, "Failed to reload seed file " + e.getMessage());
         }
