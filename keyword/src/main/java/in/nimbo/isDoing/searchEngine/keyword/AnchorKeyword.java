@@ -1,4 +1,5 @@
-package in.nimbo.isDoing.searchEngine.backLinks;
+package in.nimbo.isDoing.searchEngine.keyword;
+
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -18,16 +19,16 @@ import scala.Tuple2;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class BackLinks {
+public class AnchorKeyword {
 
-    private static final String hBaseInputTableName = "backLinksT";
-    private static final String hBaseInputColumnFamily = "linksT";
-    private static final String hBaseOutputTableName = "linkRefsT";
-    private static final String hBaseOutputColumnFamily = "refCountT";
-    private static final String hBaseOutputQuantifier = "countT";
+    private static final String hBaseInputTableName = "backLinks";
+    private static final String hBaseInputColumnFamily = "links";
+    private static final String hBaseOutputTableName = "linkKeyWords";
+    private static final String hBaseOutputColumnFamily = "keywords";
+    private static int numberOfKeywords = 10;
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
 
@@ -35,12 +36,14 @@ public class BackLinks {
         JavaPairRDD<ImmutableBytesWritable, Result> hBaseData =
                 javaSparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
-        JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMapToPair(
+        JavaPairRDD<String, List<String>> mapToHostAnchorWords = hBaseData.flatMapToPair(
                 record -> {
-                    List<Tuple2<String, Integer>> records = new ArrayList<>();
+                    List<Tuple2<String, List<String>>> records = new ArrayList<>();
                     List<Cell> linkCells = record._2.listCells();
                     linkCells.forEach(cell -> {
                         String link = Bytes.toString(CellUtil.cloneQualifier(cell));
+                        String anchorText = Bytes.toString(CellUtil.cloneValue(cell));
+                        List<String> anchor = Arrays.asList(anchorText.split("\\s+"));
                         String host;
                         try {
                             host = new URL(link).getHost();
@@ -48,14 +51,47 @@ public class BackLinks {
                             return;
                         }
 
-                        records.add(new Tuple2<>(host, 1));
+                        records.add(new Tuple2<>(host, anchor));
                     });
 
                     return records.iterator();
                 }
         );
 
-        JavaPairRDD<String, Integer> mapToRefCount = mapToOne.reduceByKey((v1, v2) -> v1 + v2);
+        JavaPairRDD<String, List<String>> mapToHostAllAnchorWords = mapToHostAnchorWords.reduceByKey(
+                ((v1, v2) -> {
+                    List<String> anchorsWords = new ArrayList<>();
+                    anchorsWords.addAll(v1);
+                    anchorsWords.addAll(v2);
+                    return anchorsWords;
+                })
+        );
+
+        JavaPairRDD<String, List<String>> mapToHostKeyWords = mapToHostAllAnchorWords.mapToPair(
+                record -> {
+                    String host = record._1;
+                    List<String> keywords = new ArrayList<>();
+                    Map<String, Long> counts =
+                            record._2.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
+
+                    Set<Map.Entry<String, Long>> set = counts.entrySet();
+                    List<Map.Entry<String, Long>> list = new ArrayList<>(set);
+
+                    Collections.sort(list, (o1, o2) -> (o2.getValue()).compareTo(o1.getValue()));
+
+                    int counter = 0;
+                    for (Map.Entry<String, Long> entry : list) {
+//                        System.out.println(entry.getKey() + " ==== " + entry.getValue());
+                        if (counter < numberOfKeywords) {
+                            keywords.add(entry.getKey());
+                        }
+                        counter++;
+                    }
+
+                    return new Tuple2<>(host, keywords);
+                }
+        );
+
         Job job = null;
         try {
             job = Job.getInstance(configuration);
@@ -65,14 +101,17 @@ public class BackLinks {
             e.printStackTrace();
         }
 
-        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToRefCount.mapToPair(
+        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToHostKeyWords.mapToPair(
                 record -> {
                     String link = record._1;
-                    int count = record._2;
+                    List<String> keyWords = record._2;
 
                     Put put = new Put(Bytes.toBytes(link));
-                    put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(hBaseOutputQuantifier), Bytes.toBytes(count));
-
+                    int index = 0;
+                    for (String keyWord : keyWords) {
+                        put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(index), Bytes.toBytes(keyWord));
+                        index++;
+                    }
                     return new Tuple2<>(new ImmutableBytesWritable(), put);
                 });
 
@@ -84,14 +123,14 @@ public class BackLinks {
     public static void main(String[] args) {
 
         String master = "spark://srv1:7077";
-        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master)
+        SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master)
                 .setJars(new String[]{"/home/project/sparkJobs/job.jar"});
 
         /**
          * for using in local
          */
 //        String master = "local[1]";
-//        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master);
+//        SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master);
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
@@ -101,7 +140,6 @@ public class BackLinks {
         configuration.set("hbase.cluster.distributed", "true");
         configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
         configuration.set("fs.defaultFS", "hdfs://srv1:9000");
-
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
         configuration.set(TableInputFormat.SCAN_COLUMN_FAMILY, hBaseInputColumnFamily);

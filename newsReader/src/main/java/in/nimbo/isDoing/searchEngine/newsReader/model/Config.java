@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.news_reader.model;
+package in.nimbo.isDoing.searchEngine.newsReader.model;
 
 public class Config {
     private Integer id;

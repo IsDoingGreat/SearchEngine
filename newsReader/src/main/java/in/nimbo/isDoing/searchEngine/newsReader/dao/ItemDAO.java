@@ -1,6 +1,6 @@
-package in.nimbo.isDoing.searchEngine.news_reader.dao;
+package in.nimbo.isDoing.searchEngine.newsReader.dao;
 
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 
 public interface ItemDAO {
     boolean checkItemExists(Item item) throws Exception;

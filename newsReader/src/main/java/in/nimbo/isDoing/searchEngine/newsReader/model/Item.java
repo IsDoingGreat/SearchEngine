@@ -1,4 +1,4 @@
-package in.nimbo.isDoing.searchEngine.news_reader.model;
+package in.nimbo.isDoing.searchEngine.newsReader.model;
 
 import java.net.URL;
 import java.util.Date;
@@ -8,7 +8,7 @@ public class Item {
     private String title;
     private URL link;
     private String desc;
-    private String text = null;
+    private String text;
     private Date date;
     private Channel channel;
 
@@ -92,6 +92,7 @@ public class Item {
     @Override
     public String toString() {
         return "Item{" +
+                ", Category='" + channel.getCategory() + "\'" +
                 ", title='" + title + '\'' +
                 ", link=" + link +
                 ", text='" + text + '\'' +

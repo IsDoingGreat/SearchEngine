@@ -1,8 +1,8 @@
-package in.nimbo.isDoing.searchEngine.news_reader.persister.db;
+package in.nimbo.isDoing.searchEngine.newsReader.persister.db;
 
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -49,6 +49,7 @@ public class ElasticItemPersister implements DBPersister {
     public void persist(Item item) throws Exception {
         IndexRequest indexRequest = new IndexRequest(elasticIndex, elasticDocument);
         indexRequest.source(
+                "category", item.getChannel().getCategory(),
                 "title", item.getTitle(),
                 "url", item.getLink().toExternalForm(),
                 "text", item.getText(),

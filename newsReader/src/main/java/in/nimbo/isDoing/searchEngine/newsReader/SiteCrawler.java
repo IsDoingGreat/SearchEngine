@@ -1,15 +1,17 @@
-package in.nimbo.isDoing.searchEngine.news_reader;
+package in.nimbo.isDoing.searchEngine.newsReader;
 
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import de.l3s.boilerpipe.BoilerpipeProcessingException;
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.news_reader.dao.ChannelDAO;
-import in.nimbo.isDoing.searchEngine.news_reader.dao.ItemDAO;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.dao.ChannelDAO;
+import in.nimbo.isDoing.searchEngine.newsReader.dao.ItemDAO;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Channel;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
 
 public class SiteCrawler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(SiteCrawler.class);
@@ -46,22 +47,21 @@ public class SiteCrawler implements Runnable {
             logger.trace(feed.toString());
             Channel channel = channelDAO.getChannel(urlAddress);
             if (channel == null) {
-                channel = new Channel(feed.getTitle(), urlAddress, new Date().getTime());
-                channelDAO.insertChannel(channel);
+                throw new IllegalStateException("channel of " + urlAddress + " doesn't exist");
             }
-            channelDAO.updateChannelLastDate(channel);
 
 
             for (SyndEntry entry : feed.getEntries()) {
-                String description = entry.getDescription() != null ? entry.getDescription().getValue() : "";
-
                 if (entry.getPublishedDate() == null) {
-                    continue;
+                    throw new IllegalStateException("Published Date of " + entry.getLink() + " is null!");
                 }
+
+                String description = entry.getDescription() != null ? entry.getDescription().getValue() : "";
 
                 Item item = new Item(entry.getTitle(), new URL(entry.getLink()), description, entry.getPublishedDate(), channel);
 
                 logger.debug("Checking item {}", item.getTitle());
+
                 if (itemDAO.checkItemExists(item)) {
                     continue;
                 }
@@ -124,9 +124,9 @@ public class SiteCrawler implements Runnable {
         return text;
     }
 
-    String extractTextAutomatically(URL link) throws IOException {
+    String extractTextAutomatically(URL link) throws IOException, BoilerpipeProcessingException {
         Connection.Response response = fetchSite(link);
-        return response.parse().body().text();
+        return ArticleExtractor.INSTANCE.getText(response.parse().body().text());
     }
 
     Connection.Response fetchSite(URL link) throws IOException {
