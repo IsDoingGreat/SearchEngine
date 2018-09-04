@@ -1,3 +1,5 @@
+package in.nimbo.isDoing.searchEngine.backLinks;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -21,7 +23,6 @@ public class BackLinks {
 
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
-//    private static String path;
 
     private static final String hBaseInputTableName = "backLinksT";
     private static final String hBaseInputColumnFamily = "linksT";
