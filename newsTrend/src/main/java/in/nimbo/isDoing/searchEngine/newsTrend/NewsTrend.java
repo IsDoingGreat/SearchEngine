@@ -3,9 +3,11 @@ package in.nimbo.isDoing.searchEngine.newsTrend;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -30,7 +32,7 @@ public class NewsTrend {
     static final String SPACE = "\\W";
 
     private static final String SPARK_MASTER = "local[1]";
-    private static final long DURATIONS_SECOND = 1 * 60 * 60;
+    private static final long DURATIONS_SECOND = 1 * 1 * 10;
     private static final String BROKERS = "localhost:9092";
     private static final String GROUP_ID = "newsTrendGP";
     private static final String TOPICS = "news";
@@ -71,25 +73,29 @@ public class NewsTrend {
 
         // Put trending words to HBase table
 
-
         sortedWords.foreachRDD(
                 rdd -> {
+                    Job job = null;
+                    try {
+                        job = Job.getInstance(configuration);
+                        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, HBASE_TABLE_NAME);
+                        job.setOutputFormatClass(TableOutputFormat.class);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-                    rdd.foreach(wordCount -> {
-                        TableName tn = TableName.valueOf(HBASE_TABLE_NAME);
-                        HBaseAdmin.checkHBaseAvailable(configuration);
-                        Connection connection = ConnectionFactory.createConnection(configuration);
-                        try {
+                    JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
+                            record -> {
 
-                            Table table = connection.getTable(tn);
-                            Put put = new Put(Bytes.toBytes(wordCount._2));
-                            put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(wordCount._1));
-                            table.put(put);
-                            table.close();
-                        } catch (IOException e) {
-                            throw new IllegalStateException("Problem when putting trending result to HBase");
-                        }
-                    });
+                                int count = record._1;
+                                String link = record._2;
+                                Put put = new Put(Bytes.toBytes(link));
+                                put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
+                                return new Tuple2<>(new ImmutableBytesWritable(), put);
+
+                            });
+
+                    hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
                 }
         );
 
