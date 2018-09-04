@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.engine;
 
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
@@ -136,15 +137,16 @@ public class Engine {
         }
     }
 
-    public void status(Service service) {
+    public void getJson(HaveStatus service) {
         getOutput().show(service.status());
     }
 
-    public void status(String service) {
+    public void getJson(String service) {
         if (services.get(service) == null) {
             output.show(Output.Type.ERROR, "service not Running");
         } else {
-            status(services.get(service));
+            getJson(services.get(service));
         }
     }
+
 }

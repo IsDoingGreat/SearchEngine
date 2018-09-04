@@ -4,13 +4,14 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 public class WebServerService implements Service {
 
@@ -24,19 +25,20 @@ public class WebServerService implements Service {
 
     public WebServerService() throws IOException {
         logger.info("Creating WebServerHandler Service...");
-        //coding ...
-        logger.info("WebServerHandler Service Created");
         server = new Server(9090);
-        server.setHandler(new WebServerHandler());
+        ServletContextHandler context = new ServletContextHandler(
+                ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        context.setResourceBase(Paths.get(".").toAbsolutePath().toString());
+        server.setHandler(context);
+
+
+        context.addServlet(WebSearchServlet.class, "/search/");
+        context.addServlet(SystemStatusServlet.class, "/status/*");
+        context.addServlet(DefaultServlet.class, "/");
+        logger.info("WebServerHandler Service Created");
     }
 
-    public WebServerService(Handler handler) throws IOException {
-        logger.info("Creating WebServerHandler Service...");
-        //coding ...
-        logger.info("WebServerHandler Service Created");
-        server = new Server(8080);
-        server.setHandler(new HandlerList(handler, new WebServerHandler()));
-    }
 
     @Override
     public void start() {

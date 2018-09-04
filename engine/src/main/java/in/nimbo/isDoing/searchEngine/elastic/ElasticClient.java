@@ -12,6 +12,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Map;
 
 public class ElasticClient implements HaveStatus {
@@ -66,5 +67,16 @@ public class ElasticClient implements HaveStatus {
         }
 
         return status;
+    }
+
+    public Map<?, ?> getJson() {
+        try {
+            Response response = getClient().getLowLevelClient().performRequest("GET", "/_cluster/health");
+            try (InputStream is = response.getEntity().getContent()) {
+                return XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
+            }
+        } catch (IOException e) {
+            return Collections.singletonMap("errors", Collections.singletonList(e.getMessage()));
+        }
     }
 }

@@ -19,6 +19,6 @@ public class ConsoleCommands {
 
     @Command
     public void status(@Param(name = "Service Name") String serviceName) {
-        engine.status(serviceName);
+        engine.getJson(serviceName);
     }
 }

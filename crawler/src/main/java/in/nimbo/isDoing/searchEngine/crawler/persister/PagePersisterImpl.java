@@ -4,11 +4,9 @@ import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.HBaseDBPersister;
-import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
-import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,8 +91,6 @@ public class PagePersisterImpl implements PagePersister, HaveStatus {
         Status status = new Status("Persister", "");
         status.addLine("Page Queue Size: "+pageQueue.size());
         status.addLine("Live Persister Threads: "+ persisterExecutor.getActiveCount());
-        status.addSubSections(ElasticClient.getInstance().status());
-        status.addSubSections(HBaseClient.getInstance().status());
         return status;
     }
 

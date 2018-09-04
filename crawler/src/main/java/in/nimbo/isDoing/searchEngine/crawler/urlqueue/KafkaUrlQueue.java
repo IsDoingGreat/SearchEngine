@@ -119,7 +119,7 @@ public class KafkaUrlQueue implements URLQueue, HaveStatus {
         Status status = new Status("KafkaUrlQueue", "");
         Properties properties = new Properties();
         properties.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
-        properties.setProperty(AdminClientConfig.CLIENT_ID_CONFIG, "crawler status");
+        properties.setProperty(AdminClientConfig.CLIENT_ID_CONFIG, "crawler getJson");
         properties.setProperty(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, "5000");
         AdminClient kafka = AdminClient.create(properties);
         DescribeClusterResult describeClusterResult = kafka.describeCluster();

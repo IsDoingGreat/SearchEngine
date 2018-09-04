@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.*;
 
 public class HBaseClient implements HaveStatus {
     private static final Logger logger = LoggerFactory.getLogger(HBaseClient.class);
@@ -99,5 +99,29 @@ public class HBaseClient implements HaveStatus {
             status.addLine(e.getMessage());
         }
         return status;
+    }
+
+    public Map<?, ?> getJson() {
+        Map<String, Object> clusterMap = new HashMap<>();
+        try {
+            Admin admin = getConnection().getAdmin();
+            ClusterMetrics metrics = admin.getClusterMetrics();
+            clusterMap.put("clusterId", metrics.getClusterId());
+            clusterMap.put("regionCount", metrics.getRegionCount());
+            clusterMap.put("requestCount", metrics.getRequestCount());
+            List<Map<String, Object>> servers = new ArrayList<>();
+            for (Map.Entry<ServerName, ServerMetrics> entry : metrics.getLiveServerMetrics().entrySet()) {
+                Map<String, Object> serverMap = new HashMap<>();
+                serverMap.put("serverName", entry.getKey().getServerName());
+                serverMap.put("reqPerSec", entry.getValue().getRequestCountPerSecond());
+                serverMap.put("maxHeapSize", entry.getValue().getMaxHeapSize());
+                serverMap.put("usedHeapSize", entry.getValue().getUsedHeapSize());
+                servers.add(serverMap);
+            }
+            clusterMap.put("servers", servers);
+        } catch (IOException e) {
+            clusterMap.put("errors", Collections.singletonList(e.getMessage()));
+        }
+        return clusterMap;
     }
 }
