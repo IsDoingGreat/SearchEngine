@@ -72,7 +72,6 @@ public class NewsTrend {
                 (Function<JavaPairRDD<Integer, String>, JavaPairRDD<Integer, String>>) jPairRDD -> jPairRDD.sortByKey(false));
 
         // Put trending words to HBase table
-
         sortedWords.foreachRDD(
                 rdd -> {
                     Job job = null;
