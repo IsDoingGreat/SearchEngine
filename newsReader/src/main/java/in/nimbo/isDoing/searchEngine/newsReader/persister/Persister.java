@@ -1,10 +1,10 @@
-package in.nimbo.isDoing.searchEngine.news_reader.persister;
+package in.nimbo.isDoing.searchEngine.newsReader.persister;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
-import in.nimbo.isDoing.searchEngine.news_reader.persister.db.ElasticItemPersister;
-import in.nimbo.isDoing.searchEngine.news_reader.persister.db.HBaseItemPersister;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.persister.db.ElasticItemPersister;
+import in.nimbo.isDoing.searchEngine.newsReader.persister.db.HBaseItemPersister;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +27,11 @@ public class Persister implements Runnable {
         logger.info("Creating Item Persister...");
         Engine.getOutput().show("Creating Persister...");
 
-//        topicName = Engine.getConfigs().get("newsReader.persister.kafka.topicName");
-//        brokers = Engine.getConfigs().get("newsReader.persister.kafka.brokers");
-//        producerClientId = Engine.getConfigs().get("newsReader.persister.in.nimbo.isDoing.searchEngine.kafka.producerClientId", "NewsReader Kafka UrlQueue");
-//        producer = new KafkaProducerController(brokers, producerClientId, topicName);
-//        kafkaEnable = Boolean.valueOf(Engine.getConfigs().get("newsReader.persister.kafka.enable"));
+        topicName = Engine.getConfigs().get("newsReader.persister.kafka.topicName");
+        brokers = Engine.getConfigs().get("newsReader.persister.kafka.brokers");
+        producerClientId = Engine.getConfigs().get("newsReader.persister.in.nimbo.isDoing.searchEngine.kafka.producerClientId", "NewsReader Kafka UrlQueue");
+        producer = new KafkaProducerController(brokers, producerClientId, topicName);
+        kafkaEnable = Boolean.valueOf(Engine.getConfigs().get("newsReader.persister.kafka.enable"));
 
         this.queue = queue;
         elasticItemPersister = new ElasticItemPersister();
@@ -44,7 +44,7 @@ public class Persister implements Runnable {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Item item = queue.take();
-//                    producer.produce(item.getLink().toExternalForm(), item.getText());
+                    producer.produce(item.getLink().toExternalForm(), item.getText());
                     hBaseItemPersister.persist(item);
                     elasticItemPersister.persist(item);
                 }
@@ -56,7 +56,7 @@ public class Persister implements Runnable {
             //Trying to free Blocking Queue...
             Item item;
             while ((item = queue.poll()) != null) {
-//                producer.produce(item.getLink().toExternalForm(), item.getText());
+                producer.produce(item.getLink().toExternalForm(), item.getText());
                 elasticItemPersister.persist(item);
                 hBaseItemPersister.persist(item);
                 if (queue.isEmpty()) {
