@@ -99,7 +99,7 @@ public class NewsTrend {
                 }
         );
 
-        sortedWords.print();
+//        sortedWords.print();
 
         javaStreamingContext.start();
         javaStreamingContext.awaitTermination();
