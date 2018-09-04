@@ -34,6 +34,7 @@ public class WebServerService implements Service {
 
 
         context.addServlet(WebSearchServlet.class, "/search/");
+        context.addServlet(NewsSearchServlet.class, "/news/");
         context.addServlet(SystemStatusServlet.class, "/status/*");
         context.addServlet(DefaultServlet.class, "/");
         logger.info("WebServerHandler Service Created");
