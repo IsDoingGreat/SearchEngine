@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.newsReader.persister.db;
 
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
 import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -73,8 +74,10 @@ public class ElasticItemPersister implements DBPersister {
     public void flush() throws Exception {
         if (elasticBulkRequest.numberOfActions() > 0) {
             client.bulk(elasticBulkRequest);
+            JmxCounter.setSuccessfulItemsOfElasticPersister(elasticBulkRequest.numberOfActions());
         }
 
         elasticBulkRequest = new BulkRequest();
+
     }
 }

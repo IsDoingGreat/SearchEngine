@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.newsReader.persister.db;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
 import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
@@ -69,7 +70,7 @@ public class HBaseItemPersister implements DBPersister {
             Table itemsTable = connection.getTable(itemsTableName);
             itemsTable.put(itemBulkPut);
             itemsTable.close();
-
+            JmxCounter.increamentSuccessfulItemsOfHBasePersister(itemBulkPut.size());
             itemBulkPut.clear();
         }
     }

@@ -1,8 +1,10 @@
 package in.nimbo.isDoing.searchEngine.newsReader;
 
+import com.codahale.metrics.JmxReporter;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
+import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
 import in.nimbo.isDoing.searchEngine.newsReader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.newsReader.dao.ItemDAO;
 import in.nimbo.isDoing.searchEngine.newsReader.impl.HBaseChannelDAO;
@@ -23,6 +25,7 @@ import java.util.concurrent.*;
 
 public class NewsReaderService implements Service {
     private static volatile NewsReaderService instance;
+    private static final JmxReporter jmxReporter = JmxReporter.forRegistry(JmxCounter.metricRegistry).build();
     final Logger logger = LoggerFactory.getLogger(NewsReaderService.class);
 
     private BlockingQueue<Item> queue;
@@ -60,6 +63,7 @@ public class NewsReaderService implements Service {
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput());
         Engine.getInstance().startService(new NewsReaderService());
+
     }
 
     public void setChannelDAO(ChannelDAO channelDAO) {
@@ -81,6 +85,7 @@ public class NewsReaderService implements Service {
         started = true;
         executorService.scheduleAtFixedRate(new UpdaterThread(), 0, executorServicePeriod, TimeUnit.SECONDS);
         executorService.schedule(persister, 0, TimeUnit.SECONDS);
+        jmxReporter.start();
     }
 
     @Override
@@ -96,6 +101,7 @@ public class NewsReaderService implements Service {
     @Override
     public void stop() {
         Engine.getOutput().show("Stopping NewsReaderService");
+        jmxReporter.stop();
         executorService.shutdownNow();
         try {
             Engine.getOutput().show("Waiting Five Second To Stop Threads....");
