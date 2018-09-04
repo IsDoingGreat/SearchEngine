@@ -96,7 +96,6 @@ public class TwitterTrend {
                 }
         );
 
-
         javaStreamingContext.start();
         javaStreamingContext.awaitTermination();
     }
