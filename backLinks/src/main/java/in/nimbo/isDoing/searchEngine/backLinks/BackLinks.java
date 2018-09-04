@@ -40,7 +40,7 @@ public class BackLinks {
                     List<Tuple2<String, Integer>> records = new ArrayList<>();
                     List<Cell> linkCells = record._2.listCells();
                     linkCells.forEach(cell -> {
-                        String link = Bytes.toString(CellUtil.cloneValue(cell));
+                        String link = Bytes.toString(CellUtil.cloneQualifier(cell));
                         String host;
                         try {
                             host = new URL(link).getHost();
