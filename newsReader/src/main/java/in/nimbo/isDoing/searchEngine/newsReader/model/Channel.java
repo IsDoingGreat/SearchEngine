@@ -1,30 +1,39 @@
-package in.nimbo.isDoing.searchEngine.news_reader.model;
+package in.nimbo.isDoing.searchEngine.newsReader.model;
 
 import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
 public class Channel {
+    private String category;
     private String name;
     private URL rssLink;
     private String link;
     private long lastUpdate;
 
-    public Channel(String name, URL rssLink) {
-        this(name, rssLink, new Date().getTime());
+    public Channel(String category, String name, URL rssLink) {
+        this(category, name, rssLink, new Date().getTime());
     }
 
-    public Channel(String name, URL RssLink, long lastUpdate) {
-        this(name, RssLink, lastUpdate, RssLink.getHost());
+    public Channel(String category, String name, URL RssLink, long lastUpdate) {
+        this(category, name, RssLink, lastUpdate, RssLink.getHost());
     }
 
 
-
-    public Channel(String name, URL rssLink, long lastUpdate, String link) {
+    public Channel(String category, String name, URL rssLink, long lastUpdate, String link) {
+        this.category = category;
         this.name = name;
         this.rssLink = rssLink;
         this.link = link;
         this.lastUpdate = lastUpdate;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getName() {
@@ -70,7 +79,8 @@ public class Channel {
     @Override
     public String toString() {
         return "Channel{" +
-                "name='" + name + '\'' +
+                "category='" + category + "\'" +
+                ", name='" + name + '\'' +
                 ", rssLink=" + rssLink +
                 ", link='" + link + '\'' +
                 ", lastUpdate=" + lastUpdate +
