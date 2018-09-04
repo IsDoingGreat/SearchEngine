@@ -1,8 +1,8 @@
-package in.nimbo.isDoing.searchEngine.news_reader.persister.db;
+package in.nimbo.isDoing.searchEngine.newsReader.persister.db;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Put;
@@ -48,8 +48,8 @@ public class HBaseItemPersister implements DBPersister {
         byte[] rowKeyBytes = Bytes.toBytes(item.getLink().toExternalForm());
 
         Put itemPut = new Put(rowKeyBytes);
+        itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("category"), Bytes.toBytes(item.getChannel().getCategory()));
         itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("title"), Bytes.toBytes(item.getTitle()));
-//        itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("text"), Bytes.toBytes(item.getText()));
         itemPut.addColumn(Bytes.toBytes(itemsColumnFamily), Bytes.toBytes("time"), Bytes.toBytes(item.getDate().getTime()));
 
         itemBulkPut.add(itemPut);

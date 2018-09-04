@@ -1,11 +1,11 @@
-package in.nimbo.isDoing.searchEngine.news_reader.impl;
+package in.nimbo.isDoing.searchEngine.newsReader.impl;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
-import in.nimbo.isDoing.searchEngine.news_reader.dao.ItemDAO;
-import in.nimbo.isDoing.searchEngine.news_reader.model.Item;
+import in.nimbo.isDoing.searchEngine.newsReader.dao.ItemDAO;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Item;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Get;

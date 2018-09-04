@@ -1,6 +1,6 @@
-package in.nimbo.isDoing.searchEngine.news_reader.dao;
+package in.nimbo.isDoing.searchEngine.newsReader.dao;
 
-import in.nimbo.isDoing.searchEngine.news_reader.model.Channel;
+import in.nimbo.isDoing.searchEngine.newsReader.model.Channel;
 
 import java.net.URL;
 import java.util.List;
