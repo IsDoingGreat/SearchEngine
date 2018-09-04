@@ -17,6 +17,7 @@
         <module>pageRank</module>
         <module>backLinks</module>
         <module>newsTrend</module>
+        <module>keyword</module>
     </modules>
 
     <properties>
