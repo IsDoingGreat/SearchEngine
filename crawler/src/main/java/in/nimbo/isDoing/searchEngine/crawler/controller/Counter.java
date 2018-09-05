@@ -27,6 +27,9 @@ public class Counter implements Runnable, HaveStatus {
     private int successfulLast;
     private int persistedLast;
 
+
+
+
     public void increment(States state) {
         switch (state) {
             case TOTAL:
