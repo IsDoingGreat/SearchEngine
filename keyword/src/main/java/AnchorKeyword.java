@@ -1,6 +1,3 @@
-package in.nimbo.isDoing.searchEngine.keyword;
-
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -15,6 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 
 import java.io.IOException;
@@ -24,9 +22,10 @@ import java.util.stream.Collectors;
 
 public class AnchorKeyword {
 
+    public static final int stopWordLength = 3;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
-    private static final String hBaseOutputTableName = "linkKeyWords";
+    private static final String hBaseOutputTableName = "hostKeyWords";
     private static final String hBaseOutputColumnFamily = "keywords";
     private static int numberOfKeywords = 10;
     private static JavaSparkContext javaSparkContext;
@@ -36,14 +35,16 @@ public class AnchorKeyword {
         JavaPairRDD<ImmutableBytesWritable, Result> hBaseData =
                 javaSparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
+
+        LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
         JavaPairRDD<String, List<String>> mapToHostAnchorWords = hBaseData.flatMapToPair(
                 record -> {
                     List<Tuple2<String, List<String>>> records = new ArrayList<>();
                     List<Cell> linkCells = record._2.listCells();
                     linkCells.forEach(cell -> {
                         String link = Bytes.toString(CellUtil.cloneQualifier(cell));
-                        String anchorText = Bytes.toString(CellUtil.cloneValue(cell));
-                        List<String> anchor = Arrays.asList(anchorText.split("\\s+"));
+                        String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
+                        List<String> anchor = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > stopWordLength).collect(Collectors.toList());
                         String host;
                         try {
                             host = new URL(link).getHost();
@@ -51,9 +52,12 @@ public class AnchorKeyword {
                             return;
                         }
 
-                        records.add(new Tuple2<>(host, anchor));
+                        if (host != null && host.length() > 0 && anchor.size() > 0) {
+                            records.add(new Tuple2<>(host.toLowerCase(), anchor));
+                        }
                     });
 
+                    number_of_loaded.add(1);
                     return records.iterator();
                 }
         );
@@ -81,7 +85,6 @@ public class AnchorKeyword {
 
                     int counter = 0;
                     for (Map.Entry<String, Long> entry : list) {
-//                        System.out.println(entry.getKey() + " ==== " + entry.getValue());
                         if (counter < numberOfKeywords) {
                             keywords.add(entry.getKey());
                         }
@@ -122,9 +125,17 @@ public class AnchorKeyword {
 
     public static void main(String[] args) {
 
-        String master = "spark://srv1:7077";
+        if (args.length < 3) {
+            System.out.println("Invalid args");
+            return;
+        }
+
+        String master = args[0];
         SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master)
-                .setJars(new String[]{"/home/project/sparkJobs/job.jar"});
+                .setJars(new String[]{args[1]});
+        if (Boolean.valueOf(args[2])) {
+            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        }
 
         /**
          * for using in local
