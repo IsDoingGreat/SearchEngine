@@ -89,26 +89,26 @@ public class RelativeHosts {
 
     public static void main(String[] args) {
 
-//        String master = "spark://localhost:7077";
-//        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master)
-//                .setJars(new String[]{"/home/reza/sparkJobs/job.jar"});
-//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        String master = "spark://srv2:7077";
+        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master)
+                .setJars(new String[]{"/home/sparkJobs/RelativeHosts/job.jar"});
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         /**
          * for using in local
          */
-        String master = "local[1]";
-        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master);
-        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        String master = "local[1]";
+//        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-//        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
-//        configuration.set("hbase.cluster.distributed", "true");
-//        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-//        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+        configuration.set("hbase.cluster.distributed", "true");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
