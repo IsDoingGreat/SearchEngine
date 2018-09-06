@@ -2,6 +2,7 @@ package in.nimbo.isDoing.searchEngine.web_server;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.eclipse.jetty.server.Server;
@@ -10,22 +11,15 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
 public class WebServerService implements Service {
 
-    public static void main(String[] args) throws Exception {
-        Engine.start(new ConsoleOutput());
-        new WebServerService().start();
-    }
-
     private final static Logger logger = LoggerFactory.getLogger(WebServerService.class);
     Server server;
-
-    public WebServerService() throws IOException {
+    public WebServerService() {
         logger.info("Creating WebServerHandler Service...");
-        server = new Server(9090);
+        server = new Server(Integer.parseInt(Engine.getConfigs().get("webserver.port")));
         ServletContextHandler context = new ServletContextHandler(
                 ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -42,12 +36,15 @@ public class WebServerService implements Service {
         logger.info("WebServerHandler Service Created");
     }
 
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput(), new SystemConfigs("webserver"));
+        Engine.getInstance().startService(new WebServerService());
+    }
 
     @Override
     public void start() {
         logger.info("Starting WebServerHandler Service...");
         Engine.getOutput().show("Starting WebServerHandler Service...");
-
         try {
             server.start();
         } catch (Exception e) {

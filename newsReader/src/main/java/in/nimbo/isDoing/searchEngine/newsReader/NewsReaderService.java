@@ -61,9 +61,8 @@ public class NewsReaderService implements Service {
     }
 
     public static void main(String[] args) throws Exception {
-        Engine.start(new ConsoleOutput());
+        Engine.start(new ConsoleOutput(),new SystemConfigs("newsreader"));
         Engine.getInstance().startService(new NewsReaderService());
-
     }
 
     public void setChannelDAO(ChannelDAO channelDAO) {

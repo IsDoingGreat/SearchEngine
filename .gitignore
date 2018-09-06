@@ -6,3 +6,4 @@ in.nimbo.isDoing.searchEngine.kafka.log
 *.log
 dependency-reduced-pom.xml
 *.iml
+logs

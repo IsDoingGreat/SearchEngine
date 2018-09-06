@@ -32,7 +32,7 @@ public class NewsSearchServlet extends HttpServlet {
                 ((List) map.get("errors")).add("Please specify a query");
             } else {
                 map.put("query", req.getParameter("q"));
-                SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("newsReader.persister.db.elastic.index"));
+                SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("elastic.news.index"));
                 SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
                 QueryBuilder titleQuery = QueryBuilders.matchQuery("title", req.getParameter("q"))
@@ -57,7 +57,7 @@ public class NewsSearchServlet extends HttpServlet {
                     result.put("docId", hit.getId());
                     result.put("score", hit.getScore());
                     result.put("text", ((String) hit.getSourceAsMap().get("text")).substring(0, 250));
-                    result.put("link", hit.getSourceAsMap().get("link"));
+                    result.put("url", hit.getSourceAsMap().get("url"));
                     result.put("title", hit.getSourceAsMap().get("title"));
                     result.put("date", hit.getSourceAsMap().get("date"));
                     resultList.add(result);

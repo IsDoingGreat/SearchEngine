@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static in.nimbo.isDoing.searchEngine.pipeline.Output.Type.ERROR;
+import static in.nimbo.isDoing.searchEngine.pipeline.Output.Type.INFO;
 
 public class Engine {
     private static final Logger logger = LoggerFactory.getLogger(Engine.class.getSimpleName());
@@ -29,7 +30,7 @@ public class Engine {
     }
 
     public synchronized static Engine start(Output out) throws Exception {
-        return start(out, new SystemConfigs());
+        return start(out, new SystemConfigs("default"));
     }
 
     public synchronized static Engine start(Output out, Configs configs) throws Exception {
@@ -37,6 +38,7 @@ public class Engine {
             throw new RuntimeException("Engine has already started");
 
         instance = new Engine(out, configs);
+        out.show(INFO,"Configs Loaded From " + configs.getLoadedPath().toAbsolutePath());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (instance != null) {
                 try {
@@ -60,7 +62,6 @@ public class Engine {
             }
         }));
         out.show("Server Started");
-        System.out.println("Server Started");
         return instance;
     }
 

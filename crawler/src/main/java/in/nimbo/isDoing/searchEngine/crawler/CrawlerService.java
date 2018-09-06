@@ -6,6 +6,7 @@ import in.nimbo.isDoing.searchEngine.crawler.urlqueue.KafkaUrlQueue;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class CrawlerService implements Service {
     }
 
     public static void main(String[] args) throws Exception {
-        Engine.start(new ConsoleOutput());
+        Engine.start(new ConsoleOutput(),new SystemConfigs("crawler"));
         Engine.getInstance().startService(new CrawlerService());
     }
 

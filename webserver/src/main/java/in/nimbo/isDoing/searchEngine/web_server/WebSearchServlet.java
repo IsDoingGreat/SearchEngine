@@ -32,7 +32,7 @@ public class WebSearchServlet extends HttpServlet {
                 ((List) map.get("errors")).add("Please specify a query");
             } else {
                 map.put("query", req.getParameter("q"));
-                SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index"));
+                SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("elastic.search.index"));
                 SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
                 QueryBuilder textQuery = QueryBuilders.matchQuery("text", req.getParameter("q"))
                         .fuzziness(Fuzziness.AUTO)
