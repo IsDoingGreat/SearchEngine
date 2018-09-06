@@ -59,6 +59,13 @@
             <version>${metrics.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all</artifactId>
+            <version>9.4.10.v20180503</version>
+            <type>pom</type>
+        </dependency>
+
     </dependencies>
 
     <build>

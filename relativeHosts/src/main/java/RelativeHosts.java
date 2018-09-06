@@ -22,6 +22,7 @@ import java.util.List;
 
 public class RelativeHosts {
 
+    public static final int FILTER_LIMIT = 10;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
     private static final String hBaseOutputTableName = "hostToHost";
@@ -42,8 +43,8 @@ public class RelativeHosts {
                     String sourceLink = Bytes.toString(record._1.get());
 
                     String sourceHost = sourceLink.split("/")[0];
-
                     if (sourceHost != null && sourceHost.length() > 0) {
+                        String  normalizedSourceHost = sourceLink.toLowerCase();
                         linkCells.forEach(cell -> {
                             String link = Bytes.toString(CellUtil.cloneQualifier(cell));
                             String host;
@@ -55,7 +56,7 @@ public class RelativeHosts {
                             if (host.length() <= 0) {
                                 return;
                             }
-                            records.add(new Tuple2<>(new Tuple2<>(sourceHost, host), 1));
+                            records.add(new Tuple2<>(new Tuple2<>(normalizedSourceHost, host), 1));
                         });
                     }
                     number_of_loaded.add(1);
@@ -73,7 +74,9 @@ public class RelativeHosts {
             e.printStackTrace();
         }
 
-        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToHostToHostCount.mapToPair(
+        JavaPairRDD<Tuple2<String, String>, Integer> filter = mapToHostToHostCount.filter(t -> t._2 > FILTER_LIMIT);
+
+        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = filter.mapToPair(
                 record -> {
                     Tuple2<String, String> hostToHost = record._1;
                     int count = record._2;
@@ -90,7 +93,7 @@ public class RelativeHosts {
     }
 
     public static void main(String[] args) {
-        if(args.length < 3){
+        if (args.length < 3) {
             System.out.println("Invalid args");
             return;
         }
