@@ -6,6 +6,7 @@ import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -17,6 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveStatus {
     private final static Logger logger = LoggerFactory.getLogger(CaffeinePartlyDuplicateChecker.class);
@@ -28,10 +32,13 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
     private String crawledLinkQuantifier;
     private Table table;
     private int partition;
+    private int putLinkBulkSize;
     private boolean manualPartitionAssignment;
     private int maxSize = 2;
     private boolean loadFromDatabase;
     private Connection connection;
+    private LinkedBlockingQueue<Put> putQueue = new LinkedBlockingQueue<>();
+    private Thread bulkThread = new Thread(new BulkPutter());
 
     public CaffeinePartlyDuplicateChecker() {
         Engine.getOutput().show("Creating CaffeineDuplicateChecker...");
@@ -45,6 +52,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
         manualPartitionAssignment = Boolean.parseBoolean(Engine.getConfigs().get("crawler.urlQueue.kafka.manualPartitionAssignment"));
         partition = Integer.parseInt(Engine.getConfigs().get("crawler.urlQueue.kafka.partition"));
         maxSize = Integer.parseInt(Engine.getConfigs().get("crawler.duplicate_checker.maxSize"));
+        putLinkBulkSize = Integer.parseInt(Engine.getConfigs().get("crawler.duplicate_checker.putLinkBulkSize"));
         loadFromDatabase = Boolean.parseBoolean(Engine.getConfigs().get("crawler.duplicate_checker.loadFromDatabase"));
         logger.info("Duplicate Checker Settings:\n" +
                 "crawledLinkTableName : " + crawledLinkTableName +
@@ -74,6 +82,8 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
         }
 
         logger.info("CaffeineDuplicateChecker Created With Settings");
+        bulkThread.setDaemon(true);
+        bulkThread.start();
     }
 
     private void loadDataFromHBase() {
@@ -129,8 +139,8 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
         try {
             Put put = new Put(Bytes.toBytes(HBaseClient.getInstance().generateRowKey(url)));
             put.addColumn(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier), Bytes.toBytes((byte) (Utils.toPositive(Utils.murmur2(url.getHost().getBytes())) % numPartitions)));
-            table.put(put);
-        } catch (IOException e) {
+            putQueue.put(put);
+        } catch (Exception e) {
             logger.error("Persist URL failed: ", e);
             throw new IllegalStateException(e);
         }
@@ -141,7 +151,8 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
         Engine.getOutput().show("Stopping CaffeineDuplicateChecker... ");
         try {
             table.close();
-            Engine.getOutput().show("Closing crawledLink table... ");
+            bulkThread.interrupt();
+            Engine.getOutput().show("Duplicate Checker Closed ");
         } catch (IOException e) {
             logger.error("Closing crawledLink table failed: ", e);
             throw new IllegalStateException(e);
@@ -152,6 +163,34 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
     public Status status() {
         Status status = new Status("Duplicate Checker", "");
         status.addLine("Duplicate Checker Size :" + cache.estimatedSize());
+        status.addLine("putQueue Size :" + putQueue.size());
         return status;
+    }
+
+    private class BulkPutter implements Runnable {
+        private List<Put> list = new ArrayList<>();
+
+
+        @Override
+        public void run() {
+            try {
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        list.add(putQueue.take());
+
+                        if (list.size() > putLinkBulkSize) {
+                            table.put(list);
+                            list.clear();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    putQueue.drainTo(list);
+                    table.put(list);
+                }
+            } catch (Exception e) {
+                logger.error("Duplicate Persister Thread Stopped", e);
+                Engine.getOutput().show(Output.Type.ERROR, "Duplicate Persister Thread Stopped:" + e.getMessage());
+            }
+        }
     }
 }
