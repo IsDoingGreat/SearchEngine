@@ -90,33 +90,33 @@ public class RelativeHosts {
     }
 
     public static void main(String[] args) {
-//        if(args.length < 3){
-//            System.out.println("Invalid args");
-//            return;
-//        }
-//
-//        String master = args[0];
-//        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master)
-//                .setJars(new String[]{args[1]});
-//        if (Boolean.valueOf(args[2])) {
-//            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-//        }
+        if(args.length < 3){
+            System.out.println("Invalid args");
+            return;
+        }
+
+        String master = args[0];
+        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master)
+                .setJars(new String[]{args[1]});
+        if (Boolean.valueOf(args[2])) {
+            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        }
 
         /**
          * for using in local
          */
-        String master = "local[1]";
-        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master);
-        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        String master = "local[1]";
+//        SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-//        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
-//        configuration.set("hbase.cluster.distributed", "true");
-//        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
-//        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+        configuration.set("hbase.cluster.distributed", "true");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
