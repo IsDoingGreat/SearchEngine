@@ -18,6 +18,7 @@
         <module>backLinks</module>
         <module>newsTrend</module>
         <module>keyword</module>
+        <module>relativeHosts</module>
     </modules>
 
     <properties>
