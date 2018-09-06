@@ -44,7 +44,7 @@ public class RelativeHosts {
 
                     String sourceHost = sourceLink.split("/")[0];
                     if (sourceHost != null && sourceHost.length() > 0) {
-                        String  normalizedSourceHost = sourceLink.toLowerCase();
+                        String  normalizedSourceHost = sourceHost.toLowerCase();
                         linkCells.forEach(cell -> {
                             String link = Bytes.toString(CellUtil.cloneQualifier(cell));
                             String host;
