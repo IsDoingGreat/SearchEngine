@@ -8,6 +8,7 @@ import com.rometools.rome.io.XmlReader;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
 import in.nimbo.isDoing.searchEngine.newsReader.dao.ChannelDAO;
 import in.nimbo.isDoing.searchEngine.newsReader.dao.ItemDAO;
 import in.nimbo.isDoing.searchEngine.newsReader.model.Channel;
@@ -47,12 +48,14 @@ public class SiteCrawler implements Runnable {
             logger.trace(feed.toString());
             Channel channel = channelDAO.getChannel(urlAddress);
             if (channel == null) {
+                JmxCounter.incrementInvalidChannels();
                 throw new IllegalStateException("channel of " + urlAddress + " doesn't exist");
             }
 
 
             for (SyndEntry entry : feed.getEntries()) {
                 if (entry.getPublishedDate() == null) {
+                    JmxCounter.incrementInvalidItems();
                     throw new IllegalStateException("Published Date of " + entry.getLink() + " is null!");
                 }
 
@@ -63,6 +66,7 @@ public class SiteCrawler implements Runnable {
                 logger.debug("Checking item {}", item.getTitle());
 
                 if (itemDAO.checkItemExists(item)) {
+                    JmxCounter.incrementDuplicateItems();
                     continue;
                 }
 
@@ -75,12 +79,14 @@ public class SiteCrawler implements Runnable {
                 } catch (IOException e) {
                     logger.warn(e.getMessage(), e);
                 } catch (Exception e) {
+                    JmxCounter.incrementInvalidItems();
                     logger.debug("failed to load fullText for item   {}, for more information enable debug level ", item.getTitle());
                     logger.debug("error", e);
                     logger.trace("Printing Item : {}", item);
                 }
             }
         } catch (Exception e) {
+            JmxCounter.incrementInvalidChannels();
             channelDAO.insertInvalidChannel(channelDAO.getChannel(urlAddress));
             logger.error(e.getMessage(), e);
             Engine.getOutput().show(Output.Type.ERROR, "crawling failed for site " + urlAddress + "! for more information see rssReader.log");
