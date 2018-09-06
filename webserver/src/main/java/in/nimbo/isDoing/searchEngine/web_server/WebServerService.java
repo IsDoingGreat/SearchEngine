@@ -33,6 +33,8 @@ public class WebServerService implements Service {
         server.setHandler(context);
 
 
+        context.addServlet(ShowTwitterTrendsServlet.class, "/tweetTrends/");
+        context.addServlet(ShowNewsTrendsServlet.class, "/newsTrends/");
         context.addServlet(WebSearchServlet.class, "/search/");
         context.addServlet(NewsSearchServlet.class, "/news/");
         context.addServlet(SystemStatusServlet.class, "/status/*");
