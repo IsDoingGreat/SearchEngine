@@ -88,11 +88,17 @@ public class RelativeHosts {
     }
 
     public static void main(String[] args) {
+        if(args.length < 3){
+            System.out.println("Invalid args");
+            return;
+        }
 
-        String master = "spark://srv2:7077";
+        String master = args[0];
         SparkConf sparkConf = new SparkConf().setAppName(RelativeHosts.class.getSimpleName()).setMaster(master)
-                .setJars(new String[]{"/home/sparkJobs/RelativeHosts/job.jar"});
-        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+                .setJars(new String[]{args[1]});
+        if (Boolean.valueOf(args[2])) {
+            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        }
 
         /**
          * for using in local
