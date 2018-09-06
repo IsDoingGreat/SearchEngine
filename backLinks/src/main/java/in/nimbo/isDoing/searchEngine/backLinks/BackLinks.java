@@ -23,11 +23,11 @@ import java.util.List;
 
 public class BackLinks {
 
-    private static final String hBaseInputTableName = "backLinksT";
-    private static final String hBaseInputColumnFamily = "linksT";
-    private static final String hBaseOutputTableName = "linkRefsT";
-    private static final String hBaseOutputColumnFamily = "refCountT";
-    private static final String hBaseOutputQuantifier = "countT";
+    private static final String hBaseInputTableName = "backLinks";
+    private static final String hBaseInputColumnFamily = "links";
+    private static final String hBaseOutputTableName = "linkRefs";
+    private static final String hBaseOutputColumnFamily = "refCount";
+    private static final String hBaseOutputQuantifier = "count";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
 
@@ -45,6 +45,9 @@ public class BackLinks {
                         try {
                             host = new URL(link).getHost();
                         } catch (Exception e) {
+                            return;
+                        }
+                        if (host.length() <= 0){
                             return;
                         }
 
@@ -67,10 +70,10 @@ public class BackLinks {
 
         JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToRefCount.mapToPair(
                 record -> {
-                    String link = record._1;
+                    String host = record._1;
                     int count = record._2;
 
-                    Put put = new Put(Bytes.toBytes(link));
+                    Put put = new Put(Bytes.toBytes(host));
                     put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(hBaseOutputQuantifier), Bytes.toBytes(count));
 
                     return new Tuple2<>(new ImmutableBytesWritable(), put);
@@ -83,24 +86,26 @@ public class BackLinks {
 
     public static void main(String[] args) {
 
-        String master = "spark://srv1:7077";
-        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master)
-                .setJars(new String[]{"/home/project/sparkJobs/job.jar"});
+//        String master = "spark://localhost:7077";
+//        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master)
+//                .setJars(new String[]{"/home/reza/sparkJobs/job.jar"});
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         /**
          * for using in local
          */
-//        String master = "local[1]";
-//        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master);
+        String master = "local[1]";
+        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master);
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
-        configuration.set("hbase.cluster.distributed", "true");
-        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+//        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
+//        configuration.set("hbase.cluster.distributed", "true");
+//        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
+//        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
 
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
