@@ -74,7 +74,7 @@ public class ElasticItemPersister implements DBPersister {
     public void flush() throws Exception {
         if (elasticBulkRequest.numberOfActions() > 0) {
             client.bulk(elasticBulkRequest);
-            JmxCounter.setSuccessfulItemsOfElasticPersister(elasticBulkRequest.numberOfActions());
+            JmxCounter.incrementSuccessfulItemsOfElasticPersister(elasticBulkRequest.numberOfActions());
         }
 
         elasticBulkRequest = new BulkRequest();

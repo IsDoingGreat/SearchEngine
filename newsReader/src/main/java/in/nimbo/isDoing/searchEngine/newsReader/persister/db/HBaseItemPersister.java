@@ -70,7 +70,7 @@ public class HBaseItemPersister implements DBPersister {
             Table itemsTable = connection.getTable(itemsTableName);
             itemsTable.put(itemBulkPut);
             itemsTable.close();
-            JmxCounter.increamentSuccessfulItemsOfHBasePersister(itemBulkPut.size());
+            JmxCounter.incrementSuccessfulItemsOfHBasePersister(itemBulkPut.size());
             itemBulkPut.clear();
         }
     }
