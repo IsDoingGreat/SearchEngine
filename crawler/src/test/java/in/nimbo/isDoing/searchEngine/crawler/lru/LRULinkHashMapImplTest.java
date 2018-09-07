@@ -1,7 +1,6 @@
 package in.nimbo.isDoing.searchEngine.crawler.lru;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.junit.After;
 import org.junit.Before;
@@ -22,9 +21,6 @@ public class LRULinkHashMapImplTest {
             public void show(Type type, String object) {
             }
 
-            @Override
-            public void show(Status status) {
-            }
         });
     }
 

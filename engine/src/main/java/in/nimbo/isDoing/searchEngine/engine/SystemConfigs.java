@@ -21,6 +21,7 @@ public class SystemConfigs implements Configs {
         logger.info("config file loaded {}", configs);
     }
 
+    @Override
     public void load() throws Exception {
         Properties newConfigs = new Properties(configs);
         if (System.getenv("IS_DOING_CONFIG_DIR") != null) {
@@ -82,5 +83,10 @@ public class SystemConfigs implements Configs {
     @Override
     public Path getLoadedPath() {
         return loadedPath;
+    }
+
+    @Override
+    public Properties getMap() {
+        return configs;
     }
 }

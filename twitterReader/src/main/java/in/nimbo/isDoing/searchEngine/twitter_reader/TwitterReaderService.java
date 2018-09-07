@@ -1,12 +1,12 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class TwitterReaderService implements Service {
     private final static Logger logger = LoggerFactory.getLogger(TwitterReaderService.class);
@@ -37,7 +37,7 @@ public class TwitterReaderService implements Service {
     }
 
     @Override
-    public Status status() {
+    public Map<String, Object> status() {
         return null;
     }
 

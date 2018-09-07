@@ -1,15 +1,16 @@
 package in.nimbo.isDoing.searchEngine.engine;
 
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Status {
     private String title;
     private String description;
     private List<String> lines = new ArrayList<>();
-    private List<Status> subSections = new ArrayList<>();
+    private List<Map<String, Object>> subSections = new ArrayList<Map<String, Object>>();
 
     public Status(String title, String description, String status, List<Status> subSections) {
         this.title = title;
@@ -21,9 +22,9 @@ public class Status {
         this.description = description;
     }
 
-    public static Status get(Object object) {
-        if (object instanceof HaveStatus)
-            return ((HaveStatus) object).status();
+    public static Map<String, Object> get(Object object) {
+        if (object instanceof Stateful)
+            return ((Stateful) object).status();
         else
             return null;
     }
@@ -52,11 +53,11 @@ public class Status {
         lines.add(status);
     }
 
-    public List<Status> getSubSections() {
+    public List<Map<String, Object>> getSubSections() {
         return subSections;
     }
 
-    public void addSubSections(Status subSection) {
+    public void addSubSections(Map<String, Object> subSection) {
         if (subSection == null)
             return;
 

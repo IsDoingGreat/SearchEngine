@@ -5,19 +5,20 @@ import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.HBaseDBPersister;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PagePersisterImpl implements PagePersister, HaveStatus {
+public class PagePersisterImpl implements PagePersister, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(PagePersisterImpl.class);
 
     private static final int DEFAULT_THREAD_NUMBER = 2;
@@ -87,11 +88,11 @@ public class PagePersisterImpl implements PagePersister, HaveStatus {
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Persister", "");
-        status.addLine("Page Queue Size: "+pageQueue.size());
-        status.addLine("Live Persister Threads: "+ persisterExecutor.getActiveCount());
-        return status;
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("pageQueueSize", pageQueue.size());
+        map.put("livePersisterThreads", persisterExecutor.getActiveCount());
+        return map;
     }
 
     private static class ThreadFactory implements java.util.concurrent.ThreadFactory {

@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
 public class KafkaAdmin {
     public static Map<String, Object> getJson() {
         Map<String, Object> data = new HashMap<>();
-        String brokers = Engine.getConfigs().get("crawler.urlQueue.kafka.brokers");
+        String brokers = Engine.getConfigs().get("kafka.brokers");
 
         Properties properties = new Properties();
         properties.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);

@@ -9,15 +9,16 @@ import in.nimbo.isDoing.searchEngine.crawler.lru.LRU;
 import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersister;
 import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersisterImpl;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-public class PageCrawlerControllerImpl implements PageCrawlerController, HaveStatus {
+public class PageCrawlerControllerImpl implements PageCrawlerController, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerControllerImpl.class);
     private Counter counter;
     private PageFetcher fetcher;
@@ -108,14 +109,26 @@ public class PageCrawlerControllerImpl implements PageCrawlerController, HaveSta
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Crawler Controller", "The Heart Of Fetchers");
-        status.addSubSections(Status.get(counter));
-        status.addSubSections(Status.get(fetcher));
-        status.addSubSections(Status.get(lru));
-        status.addSubSections(Status.get(persister));
-        status.addSubSections(Status.get(duplicateChecker));
-        status.addSubSections(Status.get(urlQueue));
-        return status;
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("counter", counter.status());
+
+        if (lru instanceof Stateful) {
+            map.put("lru", ((Stateful) lru).status());
+        }
+
+        if (persister instanceof Stateful) {
+            map.put("persister", ((Stateful) persister).status());
+        }
+
+        if (duplicateChecker instanceof Stateful) {
+            map.put("duplicateChecker", ((Stateful) duplicateChecker).status());
+        }
+
+        if (urlQueue instanceof Stateful) {
+            map.put("urlQueue", ((Stateful) urlQueue).status());
+        }
+
+        return map;
     }
 }

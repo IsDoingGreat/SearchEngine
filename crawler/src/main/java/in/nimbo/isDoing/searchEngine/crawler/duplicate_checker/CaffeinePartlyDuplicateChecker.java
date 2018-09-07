@@ -3,8 +3,7 @@ package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.apache.hadoop.hbase.CompareOperator;
@@ -19,10 +18,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveStatus {
+public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(CaffeinePartlyDuplicateChecker.class);
     private final static Object OBJECT = new Object();
     private static final int numPartitions = 2;
@@ -71,6 +72,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
 
         cache = Caffeine.newBuilder()
                 .maximumSize(maxSize)
+                .recordStats()
                 .build(key -> {
                     Get get = new Get(Bytes.toBytes(key));
                     byte[] result = table.get(get).getValue(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier));
@@ -160,11 +162,12 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, HaveSta
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Duplicate Checker", "");
-        status.addLine("Duplicate Checker Size :" + cache.estimatedSize());
-        status.addLine("putQueue Size :" + putQueue.size());
-        return status;
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("size", cache.estimatedSize());
+        map.put("putQueueSize", putQueue.size());
+        map.put("stat", cache.stats().toString());
+        return map;
     }
 
     private class BulkPutter implements Runnable {

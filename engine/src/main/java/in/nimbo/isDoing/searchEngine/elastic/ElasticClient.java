@@ -1,8 +1,6 @@
 package in.nimbo.isDoing.searchEngine.elastic;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -15,7 +13,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 
-public class ElasticClient implements HaveStatus {
+public class ElasticClient {
 
     private static volatile ElasticClient instance = new ElasticClient();
     private RestHighLevelClient client;
@@ -49,24 +47,6 @@ public class ElasticClient implements HaveStatus {
 
     public static void close() throws IOException {
         getClient().close();
-    }
-
-    @Override
-    public Status status() {
-        Status status = new Status("Elastic DB", "");
-        try {
-            Response response = getClient().getLowLevelClient().performRequest("GET", "/_cluster/health");
-            try (InputStream is = response.getEntity().getContent()) {
-                Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    status.addLine(entry.getKey() + ": " + entry.getValue());
-                }
-            }
-        } catch (IOException e) {
-            status().addLine(e.getMessage());
-        }
-
-        return status;
     }
 
     public Map<?, ?> getJson() {

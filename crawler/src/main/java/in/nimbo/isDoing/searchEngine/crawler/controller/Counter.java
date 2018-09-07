@@ -1,13 +1,14 @@
 package in.nimbo.isDoing.searchEngine.crawler.controller;
 
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Counter implements Runnable, HaveStatus {
+public class Counter implements Runnable, Stateful {
     private static final Logger logger = LoggerFactory.getLogger(Counter.class.getSimpleName());
 
     private AtomicInteger total = new AtomicInteger(0);
@@ -26,8 +27,6 @@ public class Counter implements Runnable, HaveStatus {
     private int fetcherErrorLast;
     private int successfulLast;
     private int persistedLast;
-
-
 
 
     public void increment(States state) {
@@ -112,17 +111,17 @@ public class Counter implements Runnable, HaveStatus {
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Counter", "");
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
 
-        status.addLine("Links TOTAL :" + this.get(Counter.States.TOTAL));
-        status.addLine("Links DUPLICATE :" + this.get(Counter.States.DUPLICATE));
-        status.addLine("Links FETCHER_ERROR :" + this.get(Counter.States.FETCHER_ERROR));
-        status.addLine("Links LRU_REJECTED :" + this.get(Counter.States.LRU_REJECTED));
-        status.addLine("Links INVALID_LANG :" + this.get(Counter.States.INVALID_LANG));
-        status.addLine("Links SUCCESSFUL :" + this.get(Counter.States.SUCCESSFUL));
-        status.addLine("Links PERSISTED :" + this.get(Counter.States.PERSISTED));
-        return status;
+        map.put("total:", this.get(Counter.States.TOTAL));
+        map.put("duplicate:", this.get(Counter.States.DUPLICATE));
+        map.put("fetcher_error:", this.get(Counter.States.FETCHER_ERROR));
+        map.put("lru_rejected:", this.get(Counter.States.LRU_REJECTED));
+        map.put("invalid_lang:", this.get(Counter.States.INVALID_LANG));
+        map.put("successful:", this.get(Counter.States.SUCCESSFUL));
+        map.put("persisted:", this.get(Counter.States.PERSISTED));
+        return map;
     }
 
 

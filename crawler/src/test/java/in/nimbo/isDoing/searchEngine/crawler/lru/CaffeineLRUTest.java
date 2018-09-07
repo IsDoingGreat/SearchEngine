@@ -1,7 +1,6 @@
 package in.nimbo.isDoing.searchEngine.crawler.lru;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.junit.After;
@@ -29,16 +28,17 @@ public class CaffeineLRUTest {
             @Override
             public void show(Type type, String object) {
             }
-
-            @Override
-            public void show(Status status) {
-            }
         }, new Configs() {
             private Properties testConfig = new Properties();
             private Path testConfigPath = Paths.get("./testConfigs.properties");
 
             {
                 testConfig.load(new FileInputStream(testConfigPath.toFile()));
+            }
+
+            @Override
+            public void load() throws Exception {
+
             }
 
             @Override
@@ -49,6 +49,16 @@ public class CaffeineLRUTest {
             @Override
             public String get(String key, String value) {
                 return testConfig.getProperty(key, value);
+            }
+
+            @Override
+            public Path getLoadedPath() {
+                return null;
+            }
+
+            @Override
+            public Properties getMap() {
+                return null;
             }
         });
     }
