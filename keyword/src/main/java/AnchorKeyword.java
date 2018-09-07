@@ -17,17 +17,20 @@ import scala.Tuple2;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class AnchorKeyword {
 
-    public static final int stopWordLength = 3;
+    public static final int STOP_WORD_LENGTH = 3;
+    public static final int KEYWORDS_LIMIT = 10;
+    public static final int FILTER_LIMIT = 2;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
     private static final String hBaseOutputTableName = "hostKeyWords";
-    private static final String hBaseOutputColumnFamily = "keywords";
-    private static int numberOfKeywords = 10;
+    private static final String hBaseOutputColumnFamily = "K";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
 
@@ -37,14 +40,14 @@ public class AnchorKeyword {
 
 
         LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
-        JavaPairRDD<String, List<String>> mapToHostAnchorWords = hBaseData.flatMapToPair(
+        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMapToPair(
                 record -> {
-                    List<Tuple2<String, List<String>>> records = new ArrayList<>();
+                    List<Tuple2<Tuple2<String, String>, Integer>> records = new ArrayList<>();
                     List<Cell> linkCells = record._2.listCells();
                     linkCells.forEach(cell -> {
                         String link = Bytes.toString(CellUtil.cloneQualifier(cell));
                         String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
-                        List<String> anchor = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > stopWordLength).collect(Collectors.toList());
+                        List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
                         String host;
                         try {
                             host = new URL(link).getHost();
@@ -52,9 +55,12 @@ public class AnchorKeyword {
                             return;
                         }
 
-                        if (host != null && host.length() > 0 && anchor.size() > 0) {
-                            records.add(new Tuple2<>(host.toLowerCase(), anchor));
+                        for (String anchor : anchors) {
+                            if (host != null && host.length() > 0) {
+                                records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
+                            }
                         }
+
                     });
 
                     number_of_loaded.add(1);
@@ -62,36 +68,49 @@ public class AnchorKeyword {
                 }
         );
 
-        JavaPairRDD<String, List<String>> mapToHostAllAnchorWords = mapToHostAnchorWords.reduceByKey(
-                ((v1, v2) -> {
-                    List<String> anchorsWords = new ArrayList<>();
-                    anchorsWords.addAll(v1);
-                    anchorsWords.addAll(v2);
-                    return anchorsWords;
-                })
-        );
+        JavaPairRDD<Tuple2<String, String>, Integer> hostToAnchorCount = mapToAnchor.reduceByKey((v1, v2) -> v1 + v2);
 
-        JavaPairRDD<String, List<String>> mapToHostKeyWords = mapToHostAllAnchorWords.mapToPair(
-                record -> {
-                    String host = record._1;
-                    List<String> keywords = new ArrayList<>();
-                    Map<String, Long> counts =
-                            record._2.stream().collect(Collectors.groupingBy(e -> e, Collectors.counting()));
+        JavaPairRDD<Tuple2<String, String>, Integer> filter = hostToAnchorCount.filter(t -> t._2 > FILTER_LIMIT);
 
-                    Set<Map.Entry<String, Long>> set = counts.entrySet();
-                    List<Map.Entry<String, Long>> list = new ArrayList<>(set);
+        JavaPairRDD<String, Tuple2<String, Integer>> hostToAnchors = filter.mapToPair(record -> new Tuple2<>(record._1._1, new Tuple2<>(record._1._2, record._2)));
 
-                    Collections.sort(list, (o1, o2) -> (o2.getValue()).compareTo(o1.getValue()));
+        JavaPairRDD<String, Iterable<Tuple2<String, Integer>>> hostToAnchorTuples = hostToAnchors.groupByKey();
 
-                    int counter = 0;
-                    for (Map.Entry<String, Long> entry : list) {
-                        if (counter < numberOfKeywords) {
-                            keywords.add(entry.getKey());
-                        }
-                        counter++;
+        JavaPairRDD<String, Iterable<Tuple2<String, Integer>>> hostToAnchorTuplesTops = hostToAnchorTuples.mapToPair(record -> {
+                    int[] keywordsCount = new int[KEYWORDS_LIMIT];
+                    String[] keywords = new String[KEYWORDS_LIMIT];
+                    for (int i = 0; i < KEYWORDS_LIMIT; i++) {
+                        keywordsCount[i] = -(i + 1);
+                        keywords[i] = "";
                     }
 
-                    return new Tuple2<>(host, keywords);
+                    int minValue = Integer.MAX_VALUE;
+                    int index = -1;
+                    for (Tuple2<String, Integer> t : record._2) {
+                        for (int i = 0; i < KEYWORDS_LIMIT; i++) {
+                            if (minValue > keywordsCount[i]) {
+                                minValue = keywordsCount[i];
+                                index = i;
+                            }
+                        }
+
+                        if (index != -1 && t._2 > minValue) {
+                            keywords[index] = t._1;
+                            keywordsCount[index] = t._2;
+                        }
+
+                        minValue = Integer.MAX_VALUE;
+                        index = -1;
+                    }
+
+                    List<Tuple2<String, Integer>> records = new ArrayList<>();
+                    for (int i = 0; i < KEYWORDS_LIMIT; i++) {
+                        if (keywords[i].length() > STOP_WORD_LENGTH) {
+                            records.add(new Tuple2<>(keywords[i], keywordsCount[i]));
+                        }
+                    }
+
+                    return new Tuple2<>(record._1, records);
                 }
         );
 
@@ -104,17 +123,21 @@ public class AnchorKeyword {
             e.printStackTrace();
         }
 
-        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToHostKeyWords.mapToPair(
+        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = hostToAnchorTuplesTops.mapToPair(
                 record -> {
-                    String link = record._1;
-                    List<String> keyWords = record._2;
+                    String host = record._1;
 
-                    Put put = new Put(Bytes.toBytes(link));
-                    int index = 0;
-                    for (String keyWord : keyWords) {
-                        put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(index), Bytes.toBytes(keyWord));
-                        index++;
+                    Put put = new Put(Bytes.toBytes(host));
+                    int counter = 0;
+                    for (Tuple2<String, Integer> anchorCount : record._2) {
+                        counter++;
+                        put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(anchorCount._1), Bytes.toBytes(anchorCount._2));
+
                     }
+                    if (counter <= 0) {
+                        throw new IllegalStateException("Host doesn't have keywords");
+                    }
+
                     return new Tuple2<>(new ImmutableBytesWritable(), put);
                 });
 
@@ -140,7 +163,7 @@ public class AnchorKeyword {
         /**
          * for using in local
          */
-//        String master = "local[1]";
+//        String master = "local[*]";
 //        SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master);
 
         javaSparkContext = new JavaSparkContext(sparkConf);
