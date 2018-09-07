@@ -1,5 +1,3 @@
-package in.nimbo.isDoing.searchEngine.backLinks;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -21,13 +19,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BackLinks {
+public class BackHosts {
 
+    public static final int FILTER_LIMIT = 10;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
-    private static final String hBaseOutputTableName = "linkRefs";
-    private static final String hBaseOutputColumnFamily = "refCount";
-    private static final String hBaseOutputQuantifier = "count";
+    private static final String hBaseOutputTableName = "hostRefs";
+    private static final String hBaseOutputColumnFamily = "RC";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
 
@@ -51,7 +49,7 @@ public class BackLinks {
                             return;
                         }
 
-                        records.add(new Tuple2<>(host, 1));
+                        records.add(new Tuple2<>(host.toLowerCase(), 1));
                     });
 
                     return records.iterator();
@@ -59,6 +57,8 @@ public class BackLinks {
         );
 
         JavaPairRDD<String, Integer> mapToRefCount = mapToOne.reduceByKey((v1, v2) -> v1 + v2);
+        JavaPairRDD<String, Integer> mapToRefCountFiltered = mapToRefCount.filter(t -> t._2 > FILTER_LIMIT);
+
         Job job = null;
         try {
             job = Job.getInstance(configuration);
@@ -68,13 +68,13 @@ public class BackLinks {
             e.printStackTrace();
         }
 
-        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToRefCount.mapToPair(
+        JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = mapToRefCountFiltered.mapToPair(
                 record -> {
                     String host = record._1;
                     int count = record._2;
 
                     Put put = new Put(Bytes.toBytes(host));
-                    put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), Bytes.toBytes(hBaseOutputQuantifier), Bytes.toBytes(count));
+                    put.addColumn(Bytes.toBytes(hBaseOutputColumnFamily), null, Bytes.toBytes(count));
 
                     return new Tuple2<>(new ImmutableBytesWritable(), put);
                 });
@@ -86,26 +86,33 @@ public class BackLinks {
 
     public static void main(String[] args) {
 
-//        String master = "spark://localhost:7077";
-//        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master)
-//                .setJars(new String[]{"/home/reza/sparkJobs/job.jar"});
-//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        if (args.length < 3) {
+            System.out.println("Invalid args");
+            return;
+        }
+
+        String master = args[0];
+        SparkConf sparkConf = new SparkConf().setAppName(BackHosts.class.getSimpleName()).setMaster(master)
+                .setJars(new String[]{args[1]});
+        if (Boolean.valueOf(args[2])) {
+            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        }
 
         /**
          * for using in local
          */
-        String master = "local[1]";
-        SparkConf sparkConf = new SparkConf().setAppName(BackLinks.class.getSimpleName()).setMaster(master);
-        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        String master = "local[1]";
+//        SparkConf sparkConf = new SparkConf().setAppName(BackHosts.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-//        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
-//        configuration.set("hbase.cluster.distributed", "true");
-//        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-//        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+        configuration.set("hbase.cluster.distributed", "true");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);

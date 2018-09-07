@@ -44,7 +44,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>in.nimbo.isDoing.searchEngine.backLinks.BackLinks</mainClass>
+                                    <mainClass>AnchorKeyword</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
