@@ -1,5 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.lru;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
@@ -28,6 +30,8 @@ public class CaffeineLRU implements LRU, Stateful {
                 .maximumSize(maximumSize)
                 .recordStats()
                 .build();
+
+        SharedMetricRegistries.getDefault().register("lru.size", (Gauge<Long>) () -> cache.estimatedSize());
     }
 
     @Override

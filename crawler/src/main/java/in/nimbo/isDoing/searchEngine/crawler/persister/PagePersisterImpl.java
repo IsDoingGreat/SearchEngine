@@ -1,5 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.persister.db.ElasticDBPersister;
@@ -60,6 +62,9 @@ public class PagePersisterImpl implements PagePersister, Stateful {
         persisterExecutor = new ThreadPoolExecutor(
                 0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactory());
+
+        SharedMetricRegistries.getDefault().register("persister.queue.size", (Gauge<Integer>) () -> pageQueue.size());
+        SharedMetricRegistries.getDefault().register("persister.liveTreads", (Gauge<Integer>) () -> persisterExecutor.getActiveCount());
 
         pageQueue = new LinkedBlockingQueue<>(pageQueueSize);
 

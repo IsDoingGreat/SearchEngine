@@ -1,5 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.scheduler;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerControllerImpl;
@@ -17,6 +19,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.codahale.metrics.MetricRegistry.name;
 
 public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(CrawlSchedulerImpl.class);
@@ -36,6 +40,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     private URLQueue urlQueue;
     private Thread counterThread;
     private LinkedList<PageCrawlerImpl> pageCrawlerDeque = new LinkedList<>();
+
 
     public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
         logger.info("Creating scheduler");
@@ -61,6 +66,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
                 60, TimeUnit.SECONDS,
                 new SynchronousQueue<>(), new ThreadFactory());
 
+        SharedMetricRegistries.getDefault().register("fetcherThreads", (Gauge<Integer>) () -> executor.getActiveCount());
 
         logger.info("scheduler Created");
     }
@@ -185,8 +191,10 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
         Map<String, Object> map = new HashMap<>();
         map.put("startTime", startDate);
         map.put("urlBlockingQueueSize", queue.size());
+        SharedMetricRegistries.getDefault().register("urlBlockingQueueSize", (Gauge<Integer>) () -> queue.size());
         long seconds = (new Date().getTime() - startDate.getTime()) / 1000;
         map.put("runningSeconds", seconds);
+
         map.put("avgTotal", (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
         map.put("avgDuplicate", (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
         map.put("avgFetcherError", (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);

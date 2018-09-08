@@ -1,5 +1,8 @@
 package in.nimbo.isDoing.searchEngine.crawler;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
+import com.codahale.metrics.jmx.JmxReporter;
 import in.nimbo.isDoing.searchEngine.crawler.scheduler.CrawlScheduler;
 import in.nimbo.isDoing.searchEngine.crawler.scheduler.CrawlSchedulerImpl;
 import in.nimbo.isDoing.searchEngine.crawler.server.LocalServer;
@@ -27,6 +30,7 @@ public class CrawlerService implements Service {
     private Thread schedulerThread;
     private URLQueue urlQueue;
     private LocalServer localServer = new LocalServer();
+    private final JmxReporter jmxReporter;
 
     public CrawlerService() throws IOException {
         logger.info("Creating Crawler Service...");
@@ -34,6 +38,8 @@ public class CrawlerService implements Service {
         urlQueue = new KafkaUrlQueue();
 //        urlQueue = new ArrayListURLQueueImpl();
         scheduler = new CrawlSchedulerImpl(urlQueue);
+        SharedMetricRegistries.setDefault("metricRegistry");
+        jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
         logger.info("Crawler Service Created");
         Engine.getOutput().show("Crawler Service Created");
     }
@@ -48,6 +54,8 @@ public class CrawlerService implements Service {
         try {
             logger.info("Starting Crawler Service...");
             Engine.getOutput().show("Starting Crawler Service...");
+
+            jmxReporter.start();
 
             localServer.start();
             Engine.getOutput().show("LocalServer Started...");
@@ -77,6 +85,8 @@ public class CrawlerService implements Service {
 
         Engine.getOutput().show("Interrupting Scheduler Thread... ");
         schedulerThread.interrupt();
+
+        jmxReporter.stop();
     }
 
     public void reload() {
