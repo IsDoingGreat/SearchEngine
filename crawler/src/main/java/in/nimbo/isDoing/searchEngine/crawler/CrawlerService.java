@@ -80,7 +80,7 @@ public class CrawlerService implements Service {
     }
 
     public void reload() {
-        //TODO
+        scheduler.reload();
     }
 
     private void initSeeds() {

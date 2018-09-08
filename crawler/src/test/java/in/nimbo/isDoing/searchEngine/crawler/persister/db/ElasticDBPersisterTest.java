@@ -1,5 +1,5 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
-
+/*
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
@@ -81,7 +81,7 @@ public class ElasticDBPersisterTest {
     public void persistWithManualFlush() throws Exception {
         SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index", "1"));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        ElasticDBPersister elasticDBPersister = new ElasticDBPersister();
+        ElasticDBPersister elasticDBPersister = new ElasticDBPersister(this);
 
         Page page = new WebPage("Example Domain " +
                 "This domain is established to be used for illustrative examples in documents. You may use this domain in examples without prior coordination or asking for permission. " +
@@ -107,3 +107,4 @@ public class ElasticDBPersisterTest {
 //    public void persistWithAutomaticFlush(){
 //    }
 }
+*/

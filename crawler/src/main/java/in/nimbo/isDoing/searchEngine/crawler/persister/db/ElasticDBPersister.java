@@ -1,6 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
 
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
+import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersisterImpl;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -15,20 +16,19 @@ import org.slf4j.LoggerFactory;
  */
 public class ElasticDBPersister implements DBPersister {
     private static final Logger logger = LoggerFactory.getLogger(ElasticDBPersister.class);
-    private static final String DEFAULT_FLUSH_SIZE = "2";
-    private static final String DEFAULT_FLUSH_NUMBER = "150";
 
     private BulkRequest elasticBulkRequest;
     private RestHighLevelClient client;
 
     private String elasticIndex;
     private String elasticDocument;
-    private int elasticFlushSizeLimit;
-    private int elasticFlushNumberLimit;
+    private PagePersisterImpl pagePersister;
 
+    public ElasticDBPersister(PagePersisterImpl pagePersister) {
 
-    public ElasticDBPersister() {
         Engine.getOutput().show("Creating ElasticItemPersister...");
+        this.pagePersister = pagePersister;
+
         logger.info("Creating ElasticItemPersister...");
 
         client = ElasticClient.getClient();
@@ -36,11 +36,6 @@ public class ElasticDBPersister implements DBPersister {
         elasticIndex = Engine.getConfigs().get("crawler.persister.db.elastic.index");
         elasticDocument = Engine.getConfigs().get("crawler.persister.db.elastic.document");
 
-        elasticFlushSizeLimit = Integer.parseInt(Engine.getConfigs().get(
-                "crawler.persister.db.elastic.flushSizeLimit", DEFAULT_FLUSH_SIZE));
-
-        elasticFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
-                "crawler.persister.db.elastic.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
 
         logger.info("ElasticItemPersister Created With Settings");
     }
@@ -61,8 +56,8 @@ public class ElasticDBPersister implements DBPersister {
 
 
     private void flushIfNeeded() throws Exception {
-        if (elasticBulkRequest.estimatedSizeInBytes() / 1000_000 >= elasticFlushSizeLimit ||
-                elasticBulkRequest.numberOfActions() >= elasticFlushNumberLimit) {
+        if (elasticBulkRequest.estimatedSizeInBytes() / 1000_000 >= pagePersister.getElasticFlushSizeLimit() ||
+                elasticBulkRequest.numberOfActions() >= pagePersister.getElasticFlushNumberLimit()) {
             flush();
         }
     }

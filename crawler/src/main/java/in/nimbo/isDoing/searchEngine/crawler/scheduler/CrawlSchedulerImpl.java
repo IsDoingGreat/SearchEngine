@@ -14,14 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
@@ -31,7 +25,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     private static final int DEFAULT_QUEUE_POP_SIZE = 100;
 
 
-    private int maxActiveCrawlers;
+    private int maxActiveCrawlers = -1;
     private int queueSize;
     private int queuePopSize;
     private PageCrawlerController controller;
@@ -41,21 +35,32 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     private BlockingQueue<String> queue;
     private URLQueue urlQueue;
     private Thread counterThread;
+    private LinkedList<PageCrawlerImpl> pageCrawlerDeque = new LinkedList<>();
 
     public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
         logger.info("Creating scheduler");
         Engine.getOutput().show("Creating scheduler...");
 
-        reload();
+        maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
+                String.valueOf(DEFAULT_MAX_ACTIVE_CRAWLERS)));
+        logger.info("Using maxActiveCrawlers={}", maxActiveCrawlers);
+        queueSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queueSize",
+                String.valueOf(DEFAULT_QUEUE_SIZE)));
+        logger.info("Using queueSize={} QueueSize Cant Be Reloaded.", queueSize);
+        queuePopSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queuePopSize",
+                String.valueOf(DEFAULT_QUEUE_POP_SIZE)));
+        logger.info("Using queuePopSize={}", queueSize);
+
         queue = new LinkedBlockingQueue<>(queueSize);
         this.controller = new PageCrawlerControllerImpl(queue, urlQueue);
         this.urlQueue = urlQueue;
 
         LanguageDetector.getInstance();
 
-        executor = new ThreadPoolExecutor(maxActiveCrawlers, maxActiveCrawlers,
-                0L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(), new ThreadFactory());
+        executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), new ThreadFactory());
+
 
         logger.info("scheduler Created");
     }
@@ -74,16 +79,20 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
                 String.valueOf(DEFAULT_QUEUE_POP_SIZE)));
         logger.info("Using queuePopSize={}", queueSize);
 
+        if (oldActiveCrawlers != -1 && oldActiveCrawlers != maxActiveCrawlers){
+            if (maxActiveCrawlers > oldActiveCrawlers){
+                for (int i = 0; i < maxActiveCrawlers - oldActiveCrawlers; i++)
+                    addNewPageCrawlerTask();
+            }else{
+                for (int i = 0; i < oldActiveCrawlers - maxActiveCrawlers; i++) {
+                    PageCrawlerImpl pageCrawler = pageCrawlerDeque.pollFirst();
+                    if (pageCrawler != null)
+                        pageCrawler.stop();
+                }
+            }
+        }
 
-        //todo
-//        executor.setCorePoolSize(maxActiveCrawlers);
-//        executor.setMaximumPoolSize(maxActiveCrawlers);
-//        if (maxActiveCrawlers > oldActiveCrawlers) {
-//            for (int i = 0; i < maxActiveCrawlers - oldActiveCrawlers; i++) {
-//                executor.execute(new PageCrawlerImpl(controller));
-//            }
-//        }
-
+        controller.reload();
         logger.info("scheduler Reloaded");
     }
 
@@ -97,10 +106,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
 
         controller.getPersister().start();
 
-        int numberOfThreads = 0;
-        while (numberOfThreads < maxActiveCrawlers) {
-            executor.submit(new PageCrawlerImpl(controller));
-            numberOfThreads++;
+        for (int i = 0; i < maxActiveCrawlers; i++) {
+            addNewPageCrawlerTask();
         }
 
         counterThread = new Thread(controller.getCounter());
@@ -127,6 +134,12 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     @Override
     public void run() {
         start();
+    }
+
+    private void addNewPageCrawlerTask(){
+        PageCrawlerImpl task = new PageCrawlerImpl(controller);
+        executor.submit(task);
+        pageCrawlerDeque.addLast(task);
     }
 
     @Override
@@ -170,18 +183,18 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     @Override
     public Map<String, Object> status() {
         Map<String, Object> map = new HashMap<>();
-        map.put("start Time", startDate);
-        map.put("URL Blocking Queue Size Now", queue.size());
+        map.put("startTime", startDate);
+        map.put("urlBlockingQueueSize", queue.size());
         long seconds = (new Date().getTime() - startDate.getTime()) / 1000;
-        map.put("runningSeconds :", seconds);
-        map.put("avg_total", (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
-        map.put("avg_duplicate", (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
-        map.put("avg_fetcher_error", (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);
-        map.put("avg_lru_rejected", (controller.getCounter().get(Counter.States.LRU_REJECTED) + 0.0) / seconds);
-        map.put("avg_invalid_lang", (controller.getCounter().get(Counter.States.INVALID_LANG) + 0.0) / seconds);
-        map.put("avg_successful", (controller.getCounter().get(Counter.States.SUCCESSFUL) + 0.0) / seconds);
-        map.put("avg_persisted", (controller.getCounter().get(Counter.States.PERSISTED) + 0.0) / seconds);
-
+        map.put("runningSeconds", seconds);
+        map.put("avgTotal", (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
+        map.put("avgDuplicate", (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
+        map.put("avgFetcherError", (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);
+        map.put("avgLruRejected", (controller.getCounter().get(Counter.States.LRU_REJECTED) + 0.0) / seconds);
+        map.put("avgInvalidLang", (controller.getCounter().get(Counter.States.INVALID_LANG) + 0.0) / seconds);
+        map.put("avgSuccessful", (controller.getCounter().get(Counter.States.SUCCESSFUL) + 0.0) / seconds);
+        map.put("avgPersisted", (controller.getCounter().get(Counter.States.PERSISTED) + 0.0) / seconds);
+        map.put("activeFetcherThreads", executor.getActiveCount());
         if (controller instanceof Stateful)
             map.put("controller", ((Stateful) controller).status());
 

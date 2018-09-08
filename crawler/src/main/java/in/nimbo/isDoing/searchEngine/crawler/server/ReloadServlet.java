@@ -12,9 +12,9 @@ public class ReloadServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         CrawlerService crawler = (CrawlerService) Engine.getInstance().getService("crawler");
         try {
-            if (req.getParameter("cmd").equals("true")) {
+            if (req.getParameter("cmd") != null || req.getParameter("cmd").equals("true")) {
                 Engine.getConfigs().load();
-                resp.getWriter().print("cmd=true should be passed");
+                crawler.reload();
             }
             else {
                 resp.getWriter().print("cmd=true should be passed");

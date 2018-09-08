@@ -1,5 +1,6 @@
 package in.nimbo.isDoing.searchEngine.crawler.server;
 
+import in.nimbo.isDoing.searchEngine.crawler.CrawlerService;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 public class ConfigsServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getParameter("reload").equals("true")) {
+        if (req.getParameter("reload") != null && req.getParameter("reload").equals("true")) {
             try {
                 Engine.getConfigs().load();
             } catch (Exception e) {
@@ -35,5 +36,7 @@ public class ConfigsServlet extends HttpServlet {
             resp.getWriter().print("Error, pass option & value");
 
         Engine.getConfigs().getMap().setProperty(req.getParameter("option"), req.getParameter("value"));
+        CrawlerService crawler = (CrawlerService) Engine.getInstance().getService("crawler");
+        crawler.reload();
     }
 }

@@ -75,8 +75,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, Statefu
                 .recordStats()
                 .build(key -> {
                     Get get = new Get(Bytes.toBytes(key));
-                    byte[] result = table.get(get).getValue(Bytes.toBytes(crawledLinkColumnFamily), Bytes.toBytes(crawledLinkQuantifier));
-                    return Bytes.toString(result);
+                    return table.exists(get) ? true : null;
                 });
 
         if (loadFromDatabase) {

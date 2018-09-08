@@ -11,11 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PagePersisterImpl implements PagePersister, Stateful {
@@ -23,13 +21,20 @@ public class PagePersisterImpl implements PagePersister, Stateful {
 
     private static final int DEFAULT_THREAD_NUMBER = 2;
     private static final int DEFAULT_QUEUE_SIZE = 300;
+    private static final String DEFAULT_ELASTIC_FLUSH_LIMIT = "150";
+    private static final String DEFAULT_HBASE_FLUSH_LIMIT = "150";
+    private static final String DEFAULT_ELASTIC_FLUSH_SIZE = "2";
 
     private BlockingQueue<Page> pageQueue;
     private ThreadPoolExecutor persisterExecutor;
     private int persisterThreadNumber;
     private int pageQueueSize;
-    private Runnable[] persisterThreads;
     private Counter counter;
+    private LinkedList<PersisterThread> pagePersisterDeque = new LinkedList<>();
+
+    private int elasticFlushSizeLimit;
+    private int elasticFlushNumberLimit;
+    private int hbaseFlushNumberLimit;
 
     public PagePersisterImpl(Counter counter) {
         Engine.getOutput().show("Creating PagePersister...");
@@ -43,19 +48,39 @@ public class PagePersisterImpl implements PagePersister, Stateful {
         pageQueueSize = Integer.parseInt(Engine.getConfigs().get("crawler.persister.pageQueueSize",
                 String.valueOf(DEFAULT_QUEUE_SIZE)));
 
+        elasticFlushSizeLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.elastic.flushSizeLimit", DEFAULT_ELASTIC_FLUSH_SIZE));
+
+        elasticFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.elastic.flushNumberLimit", DEFAULT_ELASTIC_FLUSH_LIMIT));
+
+        hbaseFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.hbase.flushNumberLimit", DEFAULT_HBASE_FLUSH_LIMIT));
+
         persisterExecutor = new ThreadPoolExecutor(
-                persisterThreadNumber, persisterThreadNumber,
-                0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new ThreadFactory());
+                0, Integer.MAX_VALUE,
+                60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactory());
 
         pageQueue = new LinkedBlockingQueue<>(pageQueueSize);
 
 
         //Initializing Runnables To See If There is Any Error!!
-        persisterThreads = new Runnable[persisterThreadNumber];
         for (int i = 0; i < persisterThreadNumber; i++) {
-            persisterThreads[i] = new PersisterThread(this, new ElasticDBPersister(), new HBaseDBPersister());
+            pagePersisterDeque.addLast(new PersisterThread(this, new ElasticDBPersister(this), new HBaseDBPersister(this)));
         }
         logger.info("PagePersister Created...");
+    }
+
+    public int getElasticFlushSizeLimit() {
+        return elasticFlushSizeLimit;
+    }
+
+    public int getElasticFlushNumberLimit() {
+        return elasticFlushNumberLimit;
+    }
+
+    public int getHbaseFlushNumberLimit() {
+        return hbaseFlushNumberLimit;
     }
 
     @Override
@@ -72,9 +97,15 @@ public class PagePersisterImpl implements PagePersister, Stateful {
     public void start() {
         logger.info("Starting PagePersister...");
 
-        for (int i = 0; i < persisterThreadNumber; i++) {
-            persisterExecutor.submit(persisterThreads[i]);
+        for (PersisterThread persisterThread : pagePersisterDeque) {
+            persisterExecutor.execute(persisterThread);
         }
+    }
+
+    private void addNewThread() {
+        PersisterThread persisterThread = new PersisterThread(this, new ElasticDBPersister(this), new HBaseDBPersister(this));
+        pagePersisterDeque.addLast(persisterThread);
+        persisterExecutor.submit(persisterThread);
     }
 
     @Override
@@ -85,6 +116,43 @@ public class PagePersisterImpl implements PagePersister, Stateful {
     @Override
     public BlockingQueue<Page> getPageQueue() {
         return pageQueue;
+    }
+
+    @Override
+    public void reload() {
+        elasticFlushSizeLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.elastic.flushSizeLimit", DEFAULT_ELASTIC_FLUSH_SIZE));
+        logger.info("reload: new elasticFlushSizeLimit : {}", elasticFlushSizeLimit);
+
+
+        elasticFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.elastic.flushNumberLimit", DEFAULT_ELASTIC_FLUSH_LIMIT));
+        logger.info("reload: new elasticFlushNumberLimit : {}", elasticFlushNumberLimit);
+
+
+        hbaseFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
+                "crawler.persister.db.hbase.flushNumberLimit", DEFAULT_HBASE_FLUSH_LIMIT));
+        logger.info("reload: new hbaseFlushNumberLimit : {}", hbaseFlushNumberLimit);
+
+
+        int oldPersisterThreadNumber = persisterThreadNumber;
+        persisterThreadNumber = Integer.parseInt(Engine.getConfigs().get("crawler.persister.persisterThreadNumber",
+                String.valueOf(DEFAULT_THREAD_NUMBER)));
+        logger.info("reload: new persisterThreadCount : {}", persisterThreadNumber);
+
+        if (oldPersisterThreadNumber != persisterThreadNumber) {
+            if (persisterThreadNumber > oldPersisterThreadNumber) {
+                for (int i = 0; i < persisterThreadNumber - oldPersisterThreadNumber; i++)
+                    addNewThread();
+            } else {
+                for (int i = 0; i < oldPersisterThreadNumber - persisterThreadNumber; i++) {
+                    PersisterThread persisterThread = pagePersisterDeque.pollFirst();
+                    if (persisterThread != null)
+                        persisterThread.stop();
+                }
+            }
+        }
+
     }
 
     @Override

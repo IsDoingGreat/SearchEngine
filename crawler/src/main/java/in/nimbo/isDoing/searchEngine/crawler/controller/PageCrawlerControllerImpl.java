@@ -109,6 +109,11 @@ public class PageCrawlerControllerImpl implements PageCrawlerController, Statefu
     }
 
     @Override
+    public void reload() {
+        persister.reload();
+    }
+
+    @Override
     public Map<String, Object> status() {
         Map<String, Object> map = new HashMap<>();
         map.put("counter", counter.status());
