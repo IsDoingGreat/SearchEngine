@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(CaffeinePartlyDuplicateChecker.class);
@@ -72,7 +73,7 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, Statefu
 
         cache = Caffeine.newBuilder()
                 .maximumSize(maxSize)
-                .recordStats()
+                .expireAfterAccess(60, TimeUnit.SECONDS)
                 .build(key -> {
                     Get get = new Get(Bytes.toBytes(key));
                     return table.exists(get) ? true : null;
@@ -165,7 +166,6 @@ public class CaffeinePartlyDuplicateChecker implements DuplicateChecker, Statefu
         Map<String, Object> map = new HashMap<>();
         map.put("size", cache.estimatedSize());
         map.put("putQueueSize", putQueue.size());
-        map.put("stat", cache.stats().toString());
         return map;
     }
 

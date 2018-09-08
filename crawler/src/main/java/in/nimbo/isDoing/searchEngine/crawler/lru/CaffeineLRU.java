@@ -28,7 +28,6 @@ public class CaffeineLRU implements LRU, Stateful {
         cache = Caffeine.newBuilder()
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .maximumSize(maximumSize)
-                .recordStats()
                 .build();
 
         SharedMetricRegistries.getDefault().register("lru-size", (Gauge<Long>) () -> cache.estimatedSize());
@@ -55,7 +54,6 @@ public class CaffeineLRU implements LRU, Stateful {
     public Map<String, Object> status() {
         Map<String, Object> map = new HashMap<>();
         map.put("size", cache.estimatedSize());
-        map.put("stat",cache.stats().toString());
         return map;
     }
 }
