@@ -3,6 +3,7 @@ package in.nimbo.isDoing.searchEngine.newsReader;
 import com.codahale.metrics.jmx.JmxReporter;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.Status;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
 import in.nimbo.isDoing.searchEngine.newsReader.dao.ChannelDAO;

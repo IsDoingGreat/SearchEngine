@@ -21,7 +21,6 @@ http://feeds.bbci.co.uk/news/health/rss.xml;bbc;1;health
 http://feeds.bbci.co.uk/news/science_and_environment/rss.xml;bbc;1;science
 http://feeds.bbci.co.uk/news/technology/rss.xml;bbc;1;technology
 http://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml;bbc;1;art
-feed:https://abcnews.go.com/abcnews/internationalheadlines;abc;1;world
 https://abcnews.go.com/abcnews/politicsheadlines;abc;1;politics
 https://abcnews.go.com/abcnews/moneyheadlines;abc;1;money
 https://abcnews.go.com/abcnews/technologyheadlines;abc;1;technology
@@ -47,11 +46,6 @@ https://www.usnews.com/rss/health;usnews;1;health
 https://www.usnews.com/rss/money;usnews;1;money
 https://www.usnews.com/rss/news;usnews;1;world
 https://www.usnews.com/topics/subjects/science/rss;usnews;1;science
-https://timesofindia.indiatimes.com/rssfeeds/296589292.cms;timesofindia;1;world
-https://timesofindia.indiatimes.com/rssfeeds/4719148.cms;timesofindia;1;sport
-https://timesofindia.indiatimes.com/rssfeeds/3908999.cms;timesofindia;1;health
-https://timesofindia.indiatimes.com/rssfeeds/-2128672765.cms;timesofindia;1;science
-https://timesofindia.indiatimes.com/rssfeeds/5880659.cms;timesofindia;1;technology
 http://news.mit.edu/rss/research;mit;1;science
 https://www.cnbc.com/id/100727362/device/rss/rss.html;cnbc;1;world
 https://www.cnbc.com/id/10000664/device/rss/rss.html;cnbc;1;money
