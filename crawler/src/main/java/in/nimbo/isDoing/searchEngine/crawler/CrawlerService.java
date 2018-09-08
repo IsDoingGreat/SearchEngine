@@ -1,6 +1,5 @@
 package in.nimbo.isDoing.searchEngine.crawler;
 
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import com.codahale.metrics.jmx.JmxReporter;
 import in.nimbo.isDoing.searchEngine.crawler.scheduler.CrawlScheduler;
@@ -35,11 +34,14 @@ public class CrawlerService implements Service {
     public CrawlerService() throws IOException {
         logger.info("Creating Crawler Service...");
         Engine.getOutput().show("Creating Crawler Service...");
+
+        SharedMetricRegistries.setDefault("metricRegistry");
+        jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
+
+
         urlQueue = new KafkaUrlQueue();
 //        urlQueue = new ArrayListURLQueueImpl();
         scheduler = new CrawlSchedulerImpl(urlQueue);
-        SharedMetricRegistries.setDefault("metricRegistry");
-        jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
         logger.info("Crawler Service Created");
         Engine.getOutput().show("Crawler Service Created");
     }
