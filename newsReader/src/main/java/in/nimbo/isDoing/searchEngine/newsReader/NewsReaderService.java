@@ -2,7 +2,6 @@ package in.nimbo.isDoing.searchEngine.newsReader;
 
 import com.codahale.metrics.jmx.JmxReporter;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.newsReader.controller.JmxCounter;
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public class NewsReaderService implements Service {
@@ -89,7 +89,7 @@ public class NewsReaderService implements Service {
     }
 
     @Override
-    public Status status() {
+    public Map<String, Object> status() {
         return null;
     }
 
