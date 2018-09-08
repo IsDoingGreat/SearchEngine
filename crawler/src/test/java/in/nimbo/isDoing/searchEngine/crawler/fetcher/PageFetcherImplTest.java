@@ -2,7 +2,6 @@ package in.nimbo.isDoing.searchEngine.crawler.fetcher;
 
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.junit.After;
 import org.junit.Before;
@@ -27,9 +26,6 @@ public class PageFetcherImplTest {
             public void show(Type type, String object) {
             }
 
-            @Override
-            public void show(Status status) {
-            }
         });
     }
 

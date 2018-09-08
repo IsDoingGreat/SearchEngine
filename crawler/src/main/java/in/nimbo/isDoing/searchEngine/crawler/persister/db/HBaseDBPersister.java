@@ -1,6 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
 
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
+import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersisterImpl;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.apache.hadoop.hbase.TableName;
@@ -18,17 +19,17 @@ import java.util.Set;
 
 public class HBaseDBPersister implements DBPersister {
     private static final Logger logger = LoggerFactory.getLogger(HBaseDBPersister.class);
-    private static final String DEFAULT_FLUSH_NUMBER = "150";
 
     private Connection connection;
     private List<Put> backLinkBulkPut;
     private TableName backLinkTableName;
     private String backLinkColumnFamily;
 
-    private int hbaseFlushNumberLimit;
+    private PagePersisterImpl pagePersister;
 
-    public HBaseDBPersister() {
+    public HBaseDBPersister(PagePersisterImpl pagePersister) {
         Engine.getOutput().show("Creating HBaseItemPersister...");
+        this.pagePersister = pagePersister;
         logger.info("Creating HBaseItemPersister...");
 
         connection = HBaseClient.getConnection();
@@ -36,9 +37,6 @@ public class HBaseDBPersister implements DBPersister {
         backLinkBulkPut = new ArrayList<>();
         backLinkTableName = TableName.valueOf(Engine.getConfigs().get("crawler.persister.db.hbase.backLinks.tableName"));
         backLinkColumnFamily = Engine.getConfigs().get("crawler.persister.db.hbase.backLinks.columnFamily");
-
-        hbaseFlushNumberLimit = Integer.parseInt(Engine.getConfigs().get(
-                "crawler.persister.db.hbase.flushNumberLimit", DEFAULT_FLUSH_NUMBER));
 
         logger.info("HBaseItemPersister Created With Settings");
     }
@@ -67,7 +65,7 @@ public class HBaseDBPersister implements DBPersister {
     }
 
     private void flushIfNeeded() throws Exception {
-        if (backLinkBulkPut.size() >= hbaseFlushNumberLimit) {
+        if (backLinkBulkPut.size() >= pagePersister.getHbaseFlushNumberLimit()) {
             flush();
         }
     }

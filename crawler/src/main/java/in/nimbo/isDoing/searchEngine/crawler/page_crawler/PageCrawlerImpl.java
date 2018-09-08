@@ -9,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class PageCrawlerImpl implements PageCrawler {
     private final static Logger logger = LoggerFactory.getLogger(PageCrawlerImpl.class);
     private final static Logger pageInfoLogger = LoggerFactory.getLogger("PageInfo");
+    private volatile boolean isStopped = false;
     private PageCrawlerController controller;
 
     public PageCrawlerImpl(PageCrawlerController controller) {
@@ -22,10 +24,12 @@ public class PageCrawlerImpl implements PageCrawler {
     @Override
     public void run() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
-                String link = controller.getQueue().take();
-                URL url;
+            while (!Thread.currentThread().isInterrupted() && !isStopped) {
+                String link = controller.getQueue().poll(10, TimeUnit.SECONDS);
+                if (link == null)
+                    continue;
 
+                URL url;
                 String normalizedLink;
                 try {
                     normalizedLink = NormalizeURL.normalize(link);
@@ -81,5 +85,10 @@ public class PageCrawlerImpl implements PageCrawler {
             return;
         }
         logger.info("normally Exiting Thread {}", Thread.currentThread().getName());
+    }
+
+    @Override
+    public void stop() {
+        isStopped = true;
     }
 }

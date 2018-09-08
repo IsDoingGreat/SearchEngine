@@ -2,8 +2,6 @@ package in.nimbo.isDoing.searchEngine.crawler.duplicate_checker;
 
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import org.apache.hadoop.hbase.CompareOperator;
 import org.apache.hadoop.hbase.TableName;
@@ -19,7 +17,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DomainTreeDuplicateChecker implements DuplicateChecker, HaveStatus {
+public class DomainTreeDuplicateChecker implements DuplicateChecker {
     private static final int HBASE_SCAN_CACHE_NUMBER = 2000;
     private final static Logger logger = LoggerFactory.getLogger(DomainTreeDuplicateChecker.class);
     private final static Object OBJECT = new Object();
@@ -136,12 +134,5 @@ public class DomainTreeDuplicateChecker implements DuplicateChecker, HaveStatus 
             logger.error("Closing crawledLink table failed: ", e);
             throw new IllegalStateException(e);
         }
-    }
-
-    @Override
-    public Status status() {
-        Status status = new Status("Duplicate Checker", "");
-        status.addLine("Duplicate Checker Size :" + cache.size());
-        return status;
     }
 }

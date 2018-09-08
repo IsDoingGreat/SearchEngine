@@ -1,17 +1,19 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
+import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class WebServerService implements Service {
 
@@ -19,11 +21,17 @@ public class WebServerService implements Service {
     Server server;
     public WebServerService() {
         logger.info("Creating WebServerHandler Service...");
+        String rootDir = Engine.getConfigs().get("webserver.root");
+        if(!Files.isDirectory(Paths.get(rootDir))) {
+            logger.error("root does not exists");
+            Engine.getOutput().show(Output.Type.ERROR, "root Does Not Exists");
+            return;
+        }
         server = new Server(Integer.parseInt(Engine.getConfigs().get("webserver.port")));
         ServletContextHandler context = new ServletContextHandler(
                 ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-        context.setResourceBase(Paths.get(".").toAbsolutePath().toString());
+        context.setResourceBase(Paths.get(rootDir).toAbsolutePath().toString());
         server.setHandler(context);
 
 
@@ -65,7 +73,7 @@ public class WebServerService implements Service {
     }
 
     @Override
-    public Status status() {
+    public Map<String, Object> status() {
         return null;
     }
 

@@ -4,4 +4,6 @@ public interface CrawlScheduler extends Runnable {
     void stop();
 
     void start();
+
+    void reload();
 }

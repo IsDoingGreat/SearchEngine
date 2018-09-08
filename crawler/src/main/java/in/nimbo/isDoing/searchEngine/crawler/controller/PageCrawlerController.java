@@ -25,4 +25,6 @@ public interface PageCrawlerController {
     Counter getCounter();
 
     void stop();
+
+    void reload();
 }

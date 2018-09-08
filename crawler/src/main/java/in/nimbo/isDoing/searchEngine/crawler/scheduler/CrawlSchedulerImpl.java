@@ -1,5 +1,7 @@
 package in.nimbo.isDoing.searchEngine.crawler.scheduler;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerController;
 import in.nimbo.isDoing.searchEngine.crawler.controller.PageCrawlerControllerImpl;
@@ -7,30 +9,27 @@ import in.nimbo.isDoing.searchEngine.crawler.page.LanguageDetector;
 import in.nimbo.isDoing.searchEngine.crawler.page_crawler.PageCrawlerImpl;
 import in.nimbo.isDoing.searchEngine.crawler.urlqueue.URLQueue;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
+import static com.codahale.metrics.MetricRegistry.name;
+
+public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(CrawlSchedulerImpl.class);
     private static final int DEFAULT_MAX_ACTIVE_CRAWLERS = 100;
     private static final int DEFAULT_QUEUE_SIZE = 100;
     private static final int DEFAULT_QUEUE_POP_SIZE = 100;
 
 
-    private int maxActiveCrawlers;
+    private int maxActiveCrawlers = -1;
     private int queueSize;
     private int queuePopSize;
     private PageCrawlerController controller;
@@ -40,6 +39,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
     private BlockingQueue<String> queue;
     private URLQueue urlQueue;
     private Thread counterThread;
+    private LinkedList<PageCrawlerImpl> pageCrawlerDeque = new LinkedList<>();
+
 
     public CrawlSchedulerImpl(URLQueue urlQueue) throws IOException {
         logger.info("Creating scheduler");
@@ -47,16 +48,12 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
 
         maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
                 String.valueOf(DEFAULT_MAX_ACTIVE_CRAWLERS)));
-
         logger.info("Using maxActiveCrawlers={}", maxActiveCrawlers);
-
         queueSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queueSize",
                 String.valueOf(DEFAULT_QUEUE_SIZE)));
-        logger.info("Using queueSize={}", queueSize);
-
+        logger.info("Using queueSize={} QueueSize Cant Be Reloaded.", queueSize);
         queuePopSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queuePopSize",
                 String.valueOf(DEFAULT_QUEUE_POP_SIZE)));
-
         logger.info("Using queuePopSize={}", queueSize);
 
         queue = new LinkedBlockingQueue<>(queueSize);
@@ -65,11 +62,45 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
 
         LanguageDetector.getInstance();
 
-        executor = new ThreadPoolExecutor(maxActiveCrawlers, maxActiveCrawlers,
-                0L, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(), new ThreadFactory());
+        executor = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), new ThreadFactory());
+
+        SharedMetricRegistries.getDefault().register("fetcherThreads", (Gauge<Integer>) () -> executor.getActiveCount());
+        SharedMetricRegistries.getDefault().register("urlBlockingQueueSize", (Gauge<Integer>) () -> queue.size());
 
         logger.info("scheduler Created");
+    }
+
+    @Override
+    public void reload() {
+
+        int oldActiveCrawlers = maxActiveCrawlers;
+        maxActiveCrawlers = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.activeCrawlers",
+                String.valueOf(DEFAULT_MAX_ACTIVE_CRAWLERS)));
+        logger.info("Using maxActiveCrawlers={}", maxActiveCrawlers);
+        queueSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queueSize",
+                String.valueOf(DEFAULT_QUEUE_SIZE)));
+        logger.info("Using queueSize={} QueueSize Cant Be Reloaded.", queueSize);
+        queuePopSize = Integer.parseInt(Engine.getConfigs().get("crawler.scheduler.queuePopSize",
+                String.valueOf(DEFAULT_QUEUE_POP_SIZE)));
+        logger.info("Using queuePopSize={}", queueSize);
+
+        if (oldActiveCrawlers != -1 && oldActiveCrawlers != maxActiveCrawlers){
+            if (maxActiveCrawlers > oldActiveCrawlers){
+                for (int i = 0; i < maxActiveCrawlers - oldActiveCrawlers; i++)
+                    addNewPageCrawlerTask();
+            }else{
+                for (int i = 0; i < oldActiveCrawlers - maxActiveCrawlers; i++) {
+                    PageCrawlerImpl pageCrawler = pageCrawlerDeque.pollFirst();
+                    if (pageCrawler != null)
+                        pageCrawler.stop();
+                }
+            }
+        }
+
+        controller.reload();
+        logger.info("scheduler Reloaded");
     }
 
     public void start() {
@@ -82,10 +113,8 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
 
         controller.getPersister().start();
 
-        int numberOfThreads = 0;
-        while (numberOfThreads < maxActiveCrawlers) {
-            executor.submit(new PageCrawlerImpl(controller));
-            numberOfThreads++;
+        for (int i = 0; i < maxActiveCrawlers; i++) {
+            addNewPageCrawlerTask();
         }
 
         counterThread = new Thread(controller.getCounter());
@@ -114,6 +143,12 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
         start();
     }
 
+    private void addNewPageCrawlerTask(){
+        PageCrawlerImpl task = new PageCrawlerImpl(controller);
+        executor.submit(task);
+        pageCrawlerDeque.addLast(task);
+    }
+
     @Override
     public void stop() {
         try {
@@ -127,7 +162,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
                 executor.shutdownNow();
                 tries++;
                 Engine.getOutput().show(Output.Type.WARN,
-                        "Fetcher Threads Termination is taking too long. Waiting for one more time (Try:" + tries + " )...");
+                        "Fetcher Threads Termination is taking too long. Waiting for one more time (Try" + tries + " )...");
                 Engine.getOutput().show(String.valueOf(executor.getActiveCount()));
             }
 
@@ -153,22 +188,25 @@ public class CrawlSchedulerImpl implements CrawlScheduler, HaveStatus {
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Scheduler", "A component that get links and put them to blockingQueue and also start crawl threads");
-        status.addLine("start Time:" + startDate);
-        status.addLine("URL Blocking Queue Size Now:" + queue.size());
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("startTime", startDate);
+        map.put("urlBlockingQueueSize", queue.size());
         long seconds = (new Date().getTime() - startDate.getTime()) / 1000;
-        status.addLine("Running Seconds : " + seconds);
-        status.addLine("Average Link TOTAL :" + (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
-        status.addLine("Average Link DUPLICATE :" + (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
-        status.addLine("Average Link FETCHER_ERROR :" + (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);
-        status.addLine("Average Link LRU_REJECTED :" + (controller.getCounter().get(Counter.States.LRU_REJECTED) + 0.0) / seconds);
-        status.addLine("Average Link INVALID_LANG :" + (controller.getCounter().get(Counter.States.INVALID_LANG) + 0.0) / seconds);
-        status.addLine("Average Link SUCCESSFUL :" + (controller.getCounter().get(Counter.States.SUCCESSFUL) + 0.0) / seconds);
-        status.addLine("Average Link PERSISTED :" + (controller.getCounter().get(Counter.States.PERSISTED) + 0.0) / seconds);
+        map.put("runningSeconds", seconds);
 
-        status.addSubSections(Status.get(controller));
-        return status;
+        map.put("avgTotal", (controller.getCounter().get(Counter.States.TOTAL) + 0.0) / seconds);
+        map.put("avgDuplicate", (controller.getCounter().get(Counter.States.DUPLICATE) + 0.0) / seconds);
+        map.put("avgFetcherError", (controller.getCounter().get(Counter.States.FETCHER_ERROR) + 0.0) / seconds);
+        map.put("avgLruRejected", (controller.getCounter().get(Counter.States.LRU_REJECTED) + 0.0) / seconds);
+        map.put("avgInvalidLang", (controller.getCounter().get(Counter.States.INVALID_LANG) + 0.0) / seconds);
+        map.put("avgSuccessful", (controller.getCounter().get(Counter.States.SUCCESSFUL) + 0.0) / seconds);
+        map.put("avgPersisted", (controller.getCounter().get(Counter.States.PERSISTED) + 0.0) / seconds);
+        map.put("activeFetcherThreads", executor.getActiveCount());
+        if (controller instanceof Stateful)
+            map.put("controller", ((Stateful) controller).status());
+
+        return map;
     }
 
     private static class ThreadFactory implements java.util.concurrent.ThreadFactory {

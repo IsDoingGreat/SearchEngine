@@ -1,17 +1,20 @@
 package in.nimbo.isDoing.searchEngine.crawler.lru;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CaffeineLRU implements LRU, HaveStatus {
+public class CaffeineLRU implements LRU, Stateful {
     private final static Logger logger = LoggerFactory.getLogger(WebPage.class);
     private final static Object OBJECT = new Object();
     private Cache<String, Object> cache;
@@ -25,7 +28,10 @@ public class CaffeineLRU implements LRU, HaveStatus {
         cache = Caffeine.newBuilder()
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .maximumSize(maximumSize)
+                .recordStats()
                 .build();
+
+        SharedMetricRegistries.getDefault().register("lru-size", (Gauge<Long>) () -> cache.estimatedSize());
     }
 
     @Override
@@ -46,9 +52,10 @@ public class CaffeineLRU implements LRU, HaveStatus {
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Caffeine LRU", "LRU Cache");
-        status.addLine("estimated size :  " + cache.estimatedSize());
-        return status;
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("size", cache.estimatedSize());
+        map.put("stat",cache.stats().toString());
+        return map;
     }
 }

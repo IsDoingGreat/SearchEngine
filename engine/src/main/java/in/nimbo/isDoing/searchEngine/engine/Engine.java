@@ -2,7 +2,6 @@ package in.nimbo.isDoing.searchEngine.engine;
 
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
@@ -135,18 +134,6 @@ public class Engine {
             logger.error("Error During Stopping Service.", e);
             getOutput().show(Output.Type.ERROR, "Error During Stopping Service." +
                     "Please See Logs");
-        }
-    }
-
-    public void getJson(HaveStatus service) {
-        getOutput().show(service.status());
-    }
-
-    public void getJson(String service) {
-        if (services.get(service) == null) {
-            output.show(Output.Type.ERROR, "service not Running");
-        } else {
-            getJson(services.get(service));
         }
     }
 

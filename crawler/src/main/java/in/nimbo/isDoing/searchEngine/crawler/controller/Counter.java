@@ -1,82 +1,82 @@
 package in.nimbo.isDoing.searchEngine.crawler.controller;
 
-import in.nimbo.isDoing.searchEngine.engine.Status;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.HaveStatus;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.SharedMetricRegistries;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Stateful;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Counter implements Runnable, HaveStatus {
+
+public class Counter implements Runnable, Stateful {
     private static final Logger logger = LoggerFactory.getLogger(Counter.class.getSimpleName());
 
-    private AtomicInteger total = new AtomicInteger(0);
-    private AtomicInteger LRURejected = new AtomicInteger(0);
-    private AtomicInteger duplicate = new AtomicInteger(0);
-    private AtomicInteger invalidLang = new AtomicInteger(0);
-    private AtomicInteger fetcherError = new AtomicInteger(0);
-    private AtomicInteger successful = new AtomicInteger(0);
-    private AtomicInteger persisted = new AtomicInteger(0);
+    private final Meter totalMetric = SharedMetricRegistries.getDefault().meter("totalMetric");
+    private Meter LRURejectedMetric = SharedMetricRegistries.getDefault().meter("LRURejectedMetric");
+    private Meter duplicateMetric = SharedMetricRegistries.getDefault().meter("duplicateMetric");
+    private Meter invalidLangMetric = SharedMetricRegistries.getDefault().meter("invalidLangMetric");
+    private Meter fetcherErrorMetric = SharedMetricRegistries.getDefault().meter("fetcherErrorMetric");
+    private Meter successfulMetric = SharedMetricRegistries.getDefault().meter("successfulMetric");
+    private Meter persistedMetric = SharedMetricRegistries.getDefault().meter("persistedMetric");
 
-
-    private int totalLast;
-    private int LRURejectedLast;
-    private int duplicateLast;
-    private int invalidLangLast;
-    private int fetcherErrorLast;
-    private int successfulLast;
-    private int persistedLast;
-
-
+    private long totalLast;
+    private long LRURejectedLast;
+    private long duplicateLast;
+    private long invalidLangLast;
+    private long fetcherErrorLast;
+    private long successfulLast;
+    private long persistedLast;
 
 
     public void increment(States state) {
         switch (state) {
             case TOTAL:
-                total.incrementAndGet();
+                totalMetric.mark();
                 break;
             case DUPLICATE:
-                total.incrementAndGet();
-                duplicate.incrementAndGet();
+                totalMetric.mark();
+                duplicateMetric.mark();
                 break;
             case SUCCESSFUL:
-                total.incrementAndGet();
-                successful.incrementAndGet();
+                totalMetric.mark();
+                successfulMetric.mark();
                 break;
             case INVALID_LANG:
-                total.incrementAndGet();
-                invalidLang.incrementAndGet();
+                totalMetric.mark();
+                invalidLangMetric.mark();
                 break;
             case FETCHER_ERROR:
-                total.incrementAndGet();
-                fetcherError.incrementAndGet();
+                totalMetric.mark();
+                fetcherErrorMetric.mark();
                 break;
             case LRU_REJECTED:
-                total.incrementAndGet();
-                LRURejected.incrementAndGet();
+                totalMetric.mark();
+                LRURejectedMetric.mark();
                 break;
             case PERSISTED:
-                persisted.incrementAndGet();
+                persistedMetric.mark();
                 break;
         }
     }
 
-    public int get(States state) {
+    public long get(States state) {
         switch (state) {
             case TOTAL:
-                return total.get();
+                return totalMetric.getCount();
             case DUPLICATE:
-                return duplicate.get();
+                return duplicateMetric.getCount();
             case SUCCESSFUL:
-                return successful.get();
+                return successfulMetric.getCount();
             case INVALID_LANG:
-                return invalidLang.get();
+                return invalidLangMetric.getCount();
             case FETCHER_ERROR:
-                return fetcherError.get();
+                return fetcherErrorMetric.getCount();
             case LRU_REJECTED:
-                return LRURejected.get();
+                return LRURejectedMetric.getCount();
             case PERSISTED:
-                return persisted.get();
+                return persistedMetric.getCount();
             default:
                 return 0;
         }
@@ -89,21 +89,21 @@ public class Counter implements Runnable, HaveStatus {
                 Thread.sleep(1000);
 
                 logger.info("Crawled Per Second:\n" +
-                        "\ttotal= " + (total.get() - totalLast) + "\n" +
-                        "\tLRURejected= " + (LRURejected.get() - LRURejectedLast) + "\n" +
-                        "\tduplicate= " + (duplicate.get() - duplicateLast) + "\n" +
-                        "\tinvalidLang= " + (invalidLang.get() - invalidLangLast) + "\n" +
-                        "\tfetcherError= " + (fetcherError.get() - fetcherErrorLast) + "\n" +
-                        "\tsuccessful= " + (successful.get() - successfulLast) + "\n" +
-                        "\tpersisted= " + (persisted.get() - persistedLast) + "\n"
+                        "\ttotal= " + (totalMetric.getCount() - totalLast) + "\n" +
+                        "\tLRURejected= " + (LRURejectedMetric.getCount() - LRURejectedLast) + "\n" +
+                        "\tduplicate= " + (duplicateMetric.getCount() - duplicateLast) + "\n" +
+                        "\tinvalidLang= " + (invalidLangMetric.getCount() - invalidLangLast) + "\n" +
+                        "\tfetcherError= " + (fetcherErrorMetric.getCount() - fetcherErrorLast) + "\n" +
+                        "\tsuccessful= " + (successfulMetric.getCount() - successfulLast) + "\n" +
+                        "\tpersisted= " + (persistedMetric.getCount() - persistedLast) + "\n"
                 );
-                totalLast = total.get();
-                LRURejectedLast = LRURejected.get();
-                duplicateLast = duplicate.get();
-                invalidLangLast = invalidLang.get();
-                fetcherErrorLast = fetcherError.get();
-                successfulLast = successful.get();
-                persistedLast = persisted.get();
+                totalLast = totalMetric.getCount();
+                LRURejectedLast = LRURejectedMetric.getCount();
+                duplicateLast = duplicateMetric.getCount();
+                invalidLangLast = invalidLangMetric.getCount();
+                fetcherErrorLast = fetcherErrorMetric.getCount();
+                successfulLast = successfulMetric.getCount();
+                persistedLast = persistedMetric.getCount();
             }
 
         } catch (InterruptedException e) {
@@ -112,17 +112,17 @@ public class Counter implements Runnable, HaveStatus {
     }
 
     @Override
-    public Status status() {
-        Status status = new Status("Counter", "");
+    public Map<String, Object> status() {
+        Map<String, Object> map = new HashMap<>();
 
-        status.addLine("Links TOTAL :" + this.get(Counter.States.TOTAL));
-        status.addLine("Links DUPLICATE :" + this.get(Counter.States.DUPLICATE));
-        status.addLine("Links FETCHER_ERROR :" + this.get(Counter.States.FETCHER_ERROR));
-        status.addLine("Links LRU_REJECTED :" + this.get(Counter.States.LRU_REJECTED));
-        status.addLine("Links INVALID_LANG :" + this.get(Counter.States.INVALID_LANG));
-        status.addLine("Links SUCCESSFUL :" + this.get(Counter.States.SUCCESSFUL));
-        status.addLine("Links PERSISTED :" + this.get(Counter.States.PERSISTED));
-        return status;
+        map.put("total:", this.get(Counter.States.TOTAL));
+        map.put("duplicate:", this.get(Counter.States.DUPLICATE));
+        map.put("fetcher_error:", this.get(Counter.States.FETCHER_ERROR));
+        map.put("lru_rejected:", this.get(Counter.States.LRU_REJECTED));
+        map.put("invalid_lang:", this.get(Counter.States.INVALID_LANG));
+        map.put("successful:", this.get(Counter.States.SUCCESSFUL));
+        map.put("persisted:", this.get(Counter.States.PERSISTED));
+        return map;
     }
 
 

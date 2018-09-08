@@ -1,6 +1,5 @@
 package in.nimbo.isDoing.searchEngine.pipeline.Console;
 
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 
 public class ConsoleOutput implements Output {
@@ -32,28 +31,6 @@ public class ConsoleOutput implements Output {
         else if (type == Type.STATUS)
             System.out.println(ANSI_CYAN + "[STATUS]" + ANSI_RESET + "  " + object);
 
-    }
-
-    private void show(Status status, int depth) {
-        if (status == null)
-            return;
-        
-        String tabs = new String(new char[depth]).replace("\0", "\t");
-        show(Type.STATUS, tabs + status.getTitle() + " : " + status.getDescription());
-
-        for (String line : status.getLines()) {
-            System.out.println(tabs + line);
-        }
-
-        for (Status subSection : status.getSubSections()) {
-            show(subSection, depth + 1);
-        }
-        System.out.println();
-    }
-
-    @Override
-    public void show(Status status) {
-        show(status, 0);
     }
 
 

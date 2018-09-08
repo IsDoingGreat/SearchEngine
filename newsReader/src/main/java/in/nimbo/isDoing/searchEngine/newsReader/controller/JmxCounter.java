@@ -6,6 +6,7 @@ import com.codahale.metrics.MetricRegistry;
 import static com.codahale.metrics.MetricRegistry.name;
 
 public class JmxCounter {
+
     public static final MetricRegistry metricRegistry = new MetricRegistry();
     private static final Counter successfulItemsOfHBasePersister =
             metricRegistry.counter(name(Counter.class, "Persisted items in HBase"));

@@ -14,4 +14,6 @@ public interface PagePersister {
     Counter getCounter();
 
     BlockingQueue<Page> getPageQueue();
+
+    void reload();
 }
