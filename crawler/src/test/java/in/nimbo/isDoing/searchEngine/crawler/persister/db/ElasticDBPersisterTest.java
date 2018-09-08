@@ -1,9 +1,10 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
-/*
+
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -38,16 +39,16 @@ public class ElasticDBPersisterTest {
             @Override
             public void show(Type type, String object) {
             }
+
+            @Override
+            public void show(Status status) {
+            }
         }, new Configs() {
             private Properties testConfig = new Properties();
             private Path testConfigPath = Paths.get("./testConfigs.properties");
 
             {
                 testConfig.load(new FileInputStream(testConfigPath.toFile()));
-            }
-
-            @Override
-            public void load() throws Exception {
             }
 
             @Override
@@ -64,11 +65,6 @@ public class ElasticDBPersisterTest {
             public Path getLoadedPath() {
                 return null;
             }
-
-            @Override
-            public Properties getMap() {
-                return null;
-            }
         });
     }
 
@@ -81,7 +77,7 @@ public class ElasticDBPersisterTest {
     public void persistWithManualFlush() throws Exception {
         SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index", "1"));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        ElasticDBPersister elasticDBPersister = new ElasticDBPersister(this);
+        ElasticDBPersister elasticDBPersister = new ElasticDBPersister();
 
         Page page = new WebPage("Example Domain " +
                 "This domain is established to be used for illustrative examples in documents. You may use this domain in examples without prior coordination or asking for permission. " +
@@ -107,4 +103,3 @@ public class ElasticDBPersisterTest {
 //    public void persistWithAutomaticFlush(){
 //    }
 }
-*/

@@ -54,7 +54,7 @@ public class HBaseChannelDAO implements ChannelDAO {
             throw new IllegalStateException(e);
         }
 
-        initSource = Engine.getConfigs().get("newsReader.persister.db.hbase.channels.initSource");
+        initSource = Engine.getConfigs().get("newsReader.persister.db.hbase.channels.initSource").toLowerCase();
         if (initSource.equals("file")) {
             loadFromFile();
         } else if (initSource.equals("hbase")) {
@@ -180,7 +180,11 @@ public class HBaseChannelDAO implements ChannelDAO {
     @Override
     public void reload() {
         try {
-            loadFromFile();
+            if (initSource.equals("file")) {
+                loadFromFile();
+            } else if (initSource.equals("hbase")) {
+                loadFromHBase();
+            }
         } catch (IOException e) {
             logger.error("Failed to reload seed file ", e);
             Engine.getOutput().show(Output.Type.ERROR, "Failed to reload seed file " + e.getMessage());

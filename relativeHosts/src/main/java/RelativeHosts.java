@@ -26,7 +26,7 @@ public class RelativeHosts {
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
     private static final String hBaseOutputTableName = "hostToHost";
-    private static final String hBaseOutputColumnFamily = "info";
+    private static final String hBaseOutputColumnFamily = "I";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
 
@@ -65,6 +65,8 @@ public class RelativeHosts {
         );
 
         JavaPairRDD<Tuple2<String, String>, Integer> mapToHostToHostCount = mapToRelativeHost.reduceByKey((v1, v2) -> v1 + v2);
+
+        JavaPairRDD<Tuple2<String, String>, Integer> filter = mapToHostToHostCount.filter(t -> t._2 > FILTER_LIMIT);
         Job job = null;
         try {
             job = Job.getInstance(configuration);
@@ -74,7 +76,6 @@ public class RelativeHosts {
             e.printStackTrace();
         }
 
-        JavaPairRDD<Tuple2<String, String>, Integer> filter = mapToHostToHostCount.filter(t -> t._2 > FILTER_LIMIT);
 
         JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = filter.mapToPair(
                 record -> {
