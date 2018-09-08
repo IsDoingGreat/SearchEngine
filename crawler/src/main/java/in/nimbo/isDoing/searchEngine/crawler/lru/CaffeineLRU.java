@@ -31,7 +31,7 @@ public class CaffeineLRU implements LRU, Stateful {
                 .recordStats()
                 .build();
 
-        SharedMetricRegistries.getDefault().register("lru.size", (Gauge<Long>) () -> cache.estimatedSize());
+        SharedMetricRegistries.getDefault().register("lru-size", (Gauge<Long>) () -> cache.estimatedSize());
     }
 
     @Override

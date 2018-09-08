@@ -63,8 +63,8 @@ public class PagePersisterImpl implements PagePersister, Stateful {
                 0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactory());
 
-        SharedMetricRegistries.getDefault().register("persister.queue.size", (Gauge<Integer>) () -> pageQueue.size());
-        SharedMetricRegistries.getDefault().register("persister.liveTreads", (Gauge<Integer>) () -> persisterExecutor.getActiveCount());
+        SharedMetricRegistries.getDefault().register("persister-queue-size", (Gauge<Integer>) () -> pageQueue.size());
+        SharedMetricRegistries.getDefault().register("persister-liveTreads", (Gauge<Integer>) () -> persisterExecutor.getActiveCount());
 
         pageQueue = new LinkedBlockingQueue<>(pageQueueSize);
 

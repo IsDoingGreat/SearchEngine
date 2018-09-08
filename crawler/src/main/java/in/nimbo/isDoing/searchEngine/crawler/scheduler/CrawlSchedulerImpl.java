@@ -67,6 +67,7 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
                 new SynchronousQueue<>(), new ThreadFactory());
 
         SharedMetricRegistries.getDefault().register("fetcherThreads", (Gauge<Integer>) () -> executor.getActiveCount());
+        SharedMetricRegistries.getDefault().register("urlBlockingQueueSize", (Gauge<Integer>) () -> queue.size());
 
         logger.info("scheduler Created");
     }
@@ -191,7 +192,6 @@ public class CrawlSchedulerImpl implements CrawlScheduler, Stateful {
         Map<String, Object> map = new HashMap<>();
         map.put("startTime", startDate);
         map.put("urlBlockingQueueSize", queue.size());
-        SharedMetricRegistries.getDefault().register("urlBlockingQueueSize", (Gauge<Integer>) () -> queue.size());
         long seconds = (new Date().getTime() - startDate.getTime()) / 1000;
         map.put("runningSeconds", seconds);
 
