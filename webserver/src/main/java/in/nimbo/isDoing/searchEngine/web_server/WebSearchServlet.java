@@ -58,7 +58,8 @@ public class WebSearchServlet extends HttpServlet {
                     Map<String, Object> result = new HashMap<>();
                     result.put("docId", hit.getId());
                     result.put("score", hit.getScore());
-                    result.put("text", ((String) hit.getSourceAsMap().get("text")).substring(0, 250));
+                    String text = (String) hit.getSourceAsMap().get("text");
+                    result.put("text", text.length()> 255 ? text.substring(0, 250) : text);
                     result.put("url", hit.getSourceAsMap().get("url"));
                     result.put("title", hit.getSourceAsMap().get("title"));
                     resultList.add(result);
