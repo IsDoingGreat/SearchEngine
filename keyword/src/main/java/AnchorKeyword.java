@@ -26,7 +26,7 @@ public class AnchorKeyword {
 
     public static final int STOP_WORD_LENGTH = 3;
     public static final int KEYWORDS_LIMIT = 10;
-    public static final int FILTER_LIMIT = 2;
+    public static final int FILTER_LIMIT = 10;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
     private static final String hBaseOutputTableName = "hostKeyWords";
@@ -50,13 +50,13 @@ public class AnchorKeyword {
                         List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
                         String host;
                         try {
-                            host = new URL(link).getHost();
+                            host = new URL(link).getHost().toLowerCase();
                         } catch (Exception e) {
                             return;
                         }
 
                         for (String anchor : anchors) {
-                            if (host != null && host.length() > 0) {
+                            if (host.length() > 0) {
                                 records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
                             }
                         }
