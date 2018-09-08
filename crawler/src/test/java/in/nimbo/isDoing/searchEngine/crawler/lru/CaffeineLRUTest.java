@@ -50,6 +50,11 @@ public class CaffeineLRUTest {
             public String get(String key, String value) {
                 return testConfig.getProperty(key, value);
             }
+
+            @Override
+            public Path getLoadedPath() {
+                return null;
+            }
         });
     }
 
