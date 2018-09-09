@@ -1,13 +1,14 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
+import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.codehaus.jackson.map.ObjectMapper;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,5 +67,17 @@ public class ShowTwitterTrendsServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setContentLength(json.getBytes().length);
         resp.getWriter().print(json);
+    }
+
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput(), new SystemConfigs("crawler"));
+        Connection connection = HBaseClient.getConnection();
+        TableName tn = TableName.valueOf("twitterTrendWords");
+        Table table = connection.getTable(tn);
+        for (int i = 0; i < 15; i++) {
+            Put p = new Put(Bytes.toBytes("word"+i));
+            p.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"), Bytes.toBytes(((int) (Math.random() * 200))));
+            table.put(p);
+        }
     }
 }
