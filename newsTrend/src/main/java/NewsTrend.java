@@ -98,7 +98,7 @@ public class NewsTrend {
     }
 
     public static void main(String[] args) {
-        int durationsSecond = 1 * 1 * 60;
+        int durationsMin = 1;
         String brokers = "localhost:9092";
 
         // inpput {master jarPath (true/false) durationsSecond brokers}
@@ -114,12 +114,15 @@ public class NewsTrend {
         }
 
         if (args[3] != null) {
-            durationsSecond = Integer.parseInt(args[3]);
+            durationsMin = Integer.parseInt(args[3]);
         }
         if (args[4] != null) {
             brokers = args[4];
         }
 
+
+        System.out.println("durationsMin : " + durationsMin);
+        System.out.println("brokers : " + brokers);
         /**
          * for using in local
          */
@@ -127,7 +130,7 @@ public class NewsTrend {
 //        SparkConf sparkConf = new SparkConf().setAppName(NewsTrend.class.getSimpleName()).setMaster(master);
 //        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
-        javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.seconds(durationsSecond));
+        javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.minutes(durationsMin));
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
