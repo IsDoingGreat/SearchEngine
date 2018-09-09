@@ -29,13 +29,13 @@ public class NewsTrend {
     static final String SPACE = "\\W";
     private static final String GROUP_ID = "newsTrendGP";
     private static final String TOPICS = "news";
-    private static final String AUTO_OFFSET_RESET_CONFIG = "latest";
+    private static final boolean ENABLE_AUTO_COMMIT_CONFIG = true;
+    private static final String AUTO_OFFSET_RESET_CONFIG = "earliest";
 
     private static final String HBASE_TABLE_NAME = "newsTrendWords";
     private static final String HBASE_COLUMN_FAMILY = "WC";
     private static final String HBASE_QUALIFIER = "C";
 
-    private static final boolean ENABLE_AUTO_COMMIT_CONFIG = true;
     private static JavaStreamingContext javaStreamingContext;
     private static Set<String> TOPICS_SET = new HashSet<>(Arrays.asList(TOPICS.split(",")));
     private static Map<String, Object> KAFKA_PARAMS = new HashMap<>();
@@ -120,9 +120,6 @@ public class NewsTrend {
             brokers = args[4];
         }
 
-
-        System.out.println("durationsMin : " + durationsMin);
-        System.out.println("brokers : " + brokers);
         /**
          * for using in local
          */
