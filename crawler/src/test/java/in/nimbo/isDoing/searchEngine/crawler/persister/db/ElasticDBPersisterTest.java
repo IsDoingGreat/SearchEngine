@@ -1,10 +1,11 @@
 package in.nimbo.isDoing.searchEngine.crawler.persister.db;
 
+import in.nimbo.isDoing.searchEngine.crawler.controller.Counter;
 import in.nimbo.isDoing.searchEngine.crawler.page.Page;
 import in.nimbo.isDoing.searchEngine.crawler.page.WebPage;
+import in.nimbo.isDoing.searchEngine.crawler.persister.PagePersisterImpl;
 import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.Status;
 import in.nimbo.isDoing.searchEngine.engine.interfaces.Configs;
 import in.nimbo.isDoing.searchEngine.pipeline.Output;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -17,10 +18,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileInputStream;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
@@ -39,30 +38,29 @@ public class ElasticDBPersisterTest {
             @Override
             public void show(Type type, String object) {
             }
-
-            @Override
-            public void show(Status status) {
-            }
         }, new Configs() {
-            private Properties testConfig = new Properties();
-            private Path testConfigPath = Paths.get("./testConfigs.properties");
+            @Override
+            public void load() throws Exception {
 
-            {
-                testConfig.load(new FileInputStream(testConfigPath.toFile()));
             }
 
             @Override
             public String get(String key) {
-                return testConfig.getProperty(key);
+                return null;
             }
 
             @Override
             public String get(String key, String value) {
-                return testConfig.getProperty(key, value);
+                return null;
             }
 
             @Override
             public Path getLoadedPath() {
+                return null;
+            }
+
+            @Override
+            public Properties getMap() {
                 return null;
             }
         });
@@ -77,7 +75,7 @@ public class ElasticDBPersisterTest {
     public void persistWithManualFlush() throws Exception {
         SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("crawler.persister.db.elastic.index", "1"));
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        ElasticDBPersister elasticDBPersister = new ElasticDBPersister();
+        ElasticDBPersister elasticDBPersister = new ElasticDBPersister(new PagePersisterImpl(new Counter()));
 
         Page page = new WebPage("Example Domain " +
                 "This domain is established to be used for illustrative examples in documents. You may use this domain in examples without prior coordination or asking for permission. " +
