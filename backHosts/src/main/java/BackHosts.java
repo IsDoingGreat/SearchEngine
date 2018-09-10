@@ -22,7 +22,7 @@ public class BackHosts {
     public static final int FILTER_LIMIT = 10;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
-    private static final String hBaseOutputTableName = "hostRefs";
+    private static final String hBaseOutputTableName = "hostRefsT";
     private static final String hBaseOutputColumnFamily = "RC";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
