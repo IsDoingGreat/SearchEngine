@@ -1,14 +1,13 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
-import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
-import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.codehaus.jackson.map.ObjectMapper;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,18 +31,25 @@ public class ShowTwitterTrendsServlet extends HttpServlet {
             }
             Connection connection = HBaseClient.getConnection();
 
-            TableName tn = TableName.valueOf("twitterTrendWords");
+            String hbaseTableName = "twitterTrendWords";
+            String hbaseColumnFamily = "WC";
+            String qualifier = "C";
+
+            byte[] hbaseColumnFamilyBytes = Bytes.toBytes(hbaseColumnFamily);
+            byte[] qualifierBytes = Bytes.toBytes(qualifier);
+            TableName tn = TableName.valueOf(hbaseTableName);
             Map<String, Integer> twitterTrendWords = new HashMap<>();
+
 
             Table table = connection.getTable(tn);
             Scan scan = new Scan();
             Date date = new Date();
             scan.setTimeRange(date.getTime() - passHour * 3600 * 1000, date.getTime());
-            scan.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"));
+            scan.addColumn(hbaseColumnFamilyBytes, qualifierBytes);
 
             for (Result row : table.getScanner(scan)) {
                 String word = Bytes.toString(row.getRow());
-                int count = Bytes.toInt(row.getValue(Bytes.toBytes("wordCount"), Bytes.toBytes("count")));
+                int count = Bytes.toInt(row.getValue(hbaseColumnFamilyBytes, qualifierBytes));
 
                 if (!twitterTrendWords.containsKey(word)) {
                     twitterTrendWords.put(word, count);
@@ -67,17 +73,5 @@ public class ShowTwitterTrendsServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setContentLength(json.getBytes().length);
         resp.getWriter().print(json);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Engine.start(new ConsoleOutput(), new SystemConfigs("crawler"));
-        Connection connection = HBaseClient.getConnection();
-        TableName tn = TableName.valueOf("twitterTrendWords");
-        Table table = connection.getTable(tn);
-        for (int i = 0; i < 15; i++) {
-            Put p = new Put(Bytes.toBytes("word"+i));
-            p.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"), Bytes.toBytes(((int) (Math.random() * 200))));
-            table.put(p);
-        }
     }
 }

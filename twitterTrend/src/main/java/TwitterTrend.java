@@ -1,6 +1,3 @@
-package in.nimbo.isDoing.searchEngine.newsTrend;
-
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -27,24 +24,19 @@ import scala.Tuple2;
 import java.io.IOException;
 import java.util.*;
 
-public class NewsTrend {
-    public static final int STOP_WORD_LENGTH = 3;
+public class TwitterTrend {
+    public static final int STOP_WORD_LENGTH = 0;
     static final String SPACE = "\\W";
-
-    private static final String SPARK_MASTER = "local[1]";
-    private static final long DURATIONS_SECOND = 1 * 1 * 10;
-    private static final String BROKERS = "localhost:9092";
-    private static final String GROUP_ID = "newsTrendGP";
-    private static final String TOPICS = "news";
-    private static final String AUTO_OFFSET_RESET_CONFIG = "latest";
-
-    private static final String HBASE_TABLE_NAME = "newsTrendWords";
-    private static final String HBASE_COLUMN_FAMILY = "wordCount";
-    private static final String HBASE_QUALIFIER = "count";
-
+    private static final String GROUP_ID = "twitterTrendGP";
+    private static final String TOPICS = "tweets";
+    private static final String AUTO_OFFSET_RESET_CONFIG = "earliest";
+    private static final String HBASE_TABLE_NAME = "twitterTrendWords";
+    private static final String HBASE_COLUMN_FAMILY = "WC";
+    private static final String HBASE_QUALIFIER = "C";
     private static final boolean ENABLE_AUTO_COMMIT_CONFIG = true;
-    private static SparkConf sparkConf = new SparkConf().setAppName(NewsTrend.class.getSimpleName()).setMaster(SPARK_MASTER);
-    private static JavaStreamingContext javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.seconds(DURATIONS_SECOND));
+    //    private static SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(SPARK_MASTER);
+//    private static JavaStreamingContext javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.seconds(DURATIONS_SECOND));
+    private static JavaStreamingContext javaStreamingContext;
     private static Set<String> TOPICS_SET = new HashSet<>(Arrays.asList(TOPICS.split(",")));
     private static Map<String, Object> KAFKA_PARAMS = new HashMap<>();
     private static Configuration configuration;
@@ -60,7 +52,7 @@ public class NewsTrend {
         // Get the lines, split them into words, count the words and print
         // Removing stop words
         JavaDStream<String> lines = messages.map(ConsumerRecord::value);
-        JavaDStream<String> words = lines.flatMap(x -> Arrays.stream(x.split(SPACE)).filter(s -> s.length() > STOP_WORD_LENGTH).iterator());
+        JavaDStream<String> words = lines.flatMap(x -> Arrays.stream(x.toLowerCase().split(SPACE)).filter(s -> s.length() > STOP_WORD_LENGTH).iterator());
 
         // Calculate count of each word
         JavaPairDStream<String, Integer> wordCounts = words.mapToPair(s -> new Tuple2<>(s, 1))
@@ -70,6 +62,8 @@ public class NewsTrend {
         JavaPairDStream<Integer, String> swappedPair = wordCounts.mapToPair(Tuple2::swap);
         JavaPairDStream<Integer, String> sortedWords = swappedPair.transformToPair(
                 (Function<JavaPairRDD<Integer, String>, JavaPairRDD<Integer, String>>) jPairRDD -> jPairRDD.sortByKey(false));
+
+        sortedWords.print();
 
         // Put trending words to HBase table
         sortedWords.foreachRDD(
@@ -85,34 +79,60 @@ public class NewsTrend {
 
                     JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
                             record -> {
-
                                 int count = record._1;
-                                String link = record._2;
-                                Put put = new Put(Bytes.toBytes(link));
+                                String word = record._2;
+                                Put put = new Put(Bytes.toBytes(word));
                                 put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
                                 return new Tuple2<>(new ImmutableBytesWritable(), put);
 
                             });
-
                     hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
                 }
         );
-
-//        sortedWords.print();
 
         javaStreamingContext.start();
         javaStreamingContext.awaitTermination();
     }
 
     public static void main(String[] args) {
+        int durationsSecond = 1 * 1 * 60;
+        String brokers = "localhost:9092";
+        if (args.length < 4) {
+            System.out.println("Invalid args");
+            return;
+        }
+
+        String master = args[0];
+        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master).setJars(new String[]{args[1]});
+        if (Boolean.valueOf(args[2])) {
+            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        }
+
+        if (args[3] != null) {
+            durationsSecond = Integer.parseInt(args[3]);
+        }
+        if (args[4] != null) {
+            brokers = args[4];
+        }
+
+        /**
+         * for using in local
+         */
+
+//        String master = "local[1]"
+//        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+
+        javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.seconds(durationsSecond));
+
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-//        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
-//        configuration.set("hbase.cluster.distributed", "true");
-//        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-//        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+        configuration.set("hbase.cluster.distributed", "true");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
-        KAFKA_PARAMS.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERS);
+        KAFKA_PARAMS.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         KAFKA_PARAMS.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
         KAFKA_PARAMS.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         KAFKA_PARAMS.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());

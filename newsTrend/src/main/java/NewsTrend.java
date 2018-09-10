@@ -27,8 +27,8 @@ import java.util.*;
 public class NewsTrend {
     public static final int STOP_WORD_LENGTH = 3;
     static final String SPACE = "\\W";
-    private static final String GROUP_ID = "newsTrendGP";
-    private static final String TOPICS = "news";
+    private static final String GROUP_ID = "TTGP";
+    private static final String TOPICS = "newsItems";
     private static final boolean ENABLE_AUTO_COMMIT_CONFIG = true;
     private static final String AUTO_OFFSET_RESET_CONFIG = "earliest";
 

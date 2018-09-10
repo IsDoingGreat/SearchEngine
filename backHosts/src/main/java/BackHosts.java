@@ -1,5 +1,4 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -12,12 +11,11 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BackHosts {
 
@@ -33,31 +31,29 @@ public class BackHosts {
         JavaPairRDD<ImmutableBytesWritable, Result> hBaseData =
                 javaSparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
-        JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMapToPair(
-                record -> {
-                    List<Tuple2<String, Integer>> records = new ArrayList<>();
-                    List<Cell> linkCells = record._2.listCells();
-                    linkCells.forEach(cell -> {
-                        String link = Bytes.toString(CellUtil.cloneQualifier(cell));
-                        String host;
-                        try {
-                            host = new URL(link).getHost();
-                        } catch (Exception e) {
-                            return;
-                        }
-                        if (host.length() <= 0){
-                            return;
-                        }
+        LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
+        JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMap(r -> r._2.listCells().iterator())
+                .map(r -> Bytes.toString(CellUtil.cloneQualifier(r)))
+                .mapToPair(s -> {
+                    String link = s;
+                    String host;
 
-                        records.add(new Tuple2<>(host.toLowerCase(), 1));
-                    });
+                    try {
+                        host = new URL(link).getHost();
+                    } catch (Exception e) {
+                        return new Tuple2<>("e", 0);
+                    }
 
-                    return records.iterator();
-                }
-        );
+                    if (host == null || host.length() <= 0) {
+                        return new Tuple2<>("e", 0);
+                    }
+                    number_of_loaded.add(1);
+                    return new Tuple2<>(host.toLowerCase(), 1);
+                });
+
 
         JavaPairRDD<String, Integer> mapToRefCount = mapToOne.reduceByKey((v1, v2) -> v1 + v2);
-        JavaPairRDD<String, Integer> mapToRefCountFiltered = mapToRefCount.filter(t -> t._2 > FILTER_LIMIT);
+        JavaPairRDD<String, Integer> mapToRefCountFiltered = mapToRefCount.filter(t -> (t._2 > FILTER_LIMIT && !t._1.equals("e")));
 
         Job job = null;
         try {
