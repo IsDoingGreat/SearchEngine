@@ -17,7 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class CaffeineLRUTest {
-
+/*
     @Before
     public void setup() throws Exception {
         Engine.start(new Output() {
@@ -86,5 +86,5 @@ public class CaffeineLRUTest {
         assertFalse(lru.isRecentlyUsed("https://quera.ir/"));
         lru.setUsed("https://quera.ir/");
         assertTrue(lru.isRecentlyUsed("https://quera.ir/"));
-    }
+    }*/
 }
