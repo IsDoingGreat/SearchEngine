@@ -16,6 +16,8 @@ public class Twitter4jReaderService implements Service {
         logger.info("Starting twitter reader service...");
         Engine.getOutput().show("Starting twitter reader service...");
         twitterReader.getTwitterStream();
+        logger.info("Twitter reader service started.");
+        Engine.getOutput().show("Twitter reader service started.");
     }
 
     @Override
