@@ -31,18 +31,29 @@ public class ShowNewsTrendsServlet extends HttpServlet {
             }
             Connection connection = HBaseClient.getConnection();
 
-            TableName tn = TableName.valueOf("newsTrendWords");
+//            String hbaseTableName = Engine.getConfigs().get("newsTrend.webServer.hbase.tableName");
+//            String hbaseColumnFamily = Engine.getConfigs().get("newsTrend.webServer.hbase.columnFamily");
+//            String qualifier = Engine.getConfigs().get("newsTrend.webServer.hbase.qualifier");
+
+            String hbaseTableName = "newsTrendWords";
+            String hbaseColumnFamily = "WC";
+            String qualifier = "C";
+
+            byte[] hbaseColumnFamilyBytes = Bytes.toBytes(hbaseColumnFamily);
+            byte[] qualifierBytes = Bytes.toBytes(qualifier);
+            TableName tn = TableName.valueOf(hbaseTableName);
             Map<String, Integer> twitterTrendWords = new HashMap<>();
+
 
             Table table = connection.getTable(tn);
             Scan scan = new Scan();
             Date date = new Date();
             scan.setTimeRange(date.getTime() - passHour * 3600 * 1000, date.getTime());
-            scan.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"));
+            scan.addColumn(hbaseColumnFamilyBytes, qualifierBytes);
 
             for (Result row : table.getScanner(scan)) {
                 String word = Bytes.toString(row.getRow());
-                int count = Bytes.toInt(row.getValue(Bytes.toBytes("wordCount"), Bytes.toBytes("count")));
+                int count = Bytes.toInt(row.getValue(hbaseColumnFamilyBytes, qualifierBytes));
 
                 if (!twitterTrendWords.containsKey(word)) {
                     twitterTrendWords.put(word, count);

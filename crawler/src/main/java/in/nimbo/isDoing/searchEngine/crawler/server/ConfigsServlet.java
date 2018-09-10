@@ -33,10 +33,14 @@ public class ConfigsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (req.getParameter("option") == null || req.getParameter("option").isEmpty())
-            resp.getWriter().print("Error, pass option & value");
+            resp.getWriter().print("Error, pass option");
+
+        if (req.getParameter("value") == null || req.getParameter("value").isEmpty())
+            resp.getWriter().print("Error, pass value");
 
         Engine.getConfigs().getMap().setProperty(req.getParameter("option"), req.getParameter("value"));
         CrawlerService crawler = (CrawlerService) Engine.getInstance().getService("crawler");
         crawler.reload();
+        resp.getWriter().write(req.getParameter("option")+"="+ req.getParameter("value"));
     }
 }
