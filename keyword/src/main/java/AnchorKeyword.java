@@ -1,5 +1,4 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -40,33 +39,27 @@ public class AnchorKeyword {
 
 
         LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
-        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMapToPair(
-                record -> {
+        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMap(r -> r._2.listCells().iterator())
+                .flatMapToPair(cell -> {
                     List<Tuple2<Tuple2<String, String>, Integer>> records = new ArrayList<>();
-                    List<Cell> linkCells = record._2.listCells();
-                    linkCells.forEach(cell -> {
-                        String link = Bytes.toString(CellUtil.cloneQualifier(cell));
-                        String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
-                        List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
-                        String host;
-                        try {
-                            host = new URL(link).getHost().toLowerCase();
-                        } catch (Exception e) {
-                            return;
+                    String link = Bytes.toString(CellUtil.cloneQualifier(cell));
+                    String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
+                    List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
+                    String host;
+                    try {
+                        host = new URL(link).getHost().toLowerCase();
+                    } catch (Exception e) {
+                        throw new IllegalStateException("Invalid host");
+                    }
+
+                    for (String anchor : anchors) {
+                        if (host.length() > 0) {
+                            records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
                         }
-
-                        for (String anchor : anchors) {
-                            if (host.length() > 0) {
-                                records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
-                            }
-                        }
-
-                    });
-
+                    }
                     number_of_loaded.add(1);
                     return records.iterator();
-                }
-        );
+                });
 
         JavaPairRDD<Tuple2<String, String>, Integer> hostToAnchorCount = mapToAnchor.reduceByKey((v1, v2) -> v1 + v2);
 
@@ -165,6 +158,7 @@ public class AnchorKeyword {
          */
 //        String master = "local[*]";
 //        SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
