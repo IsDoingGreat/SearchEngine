@@ -60,7 +60,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService</mainClass>
+                                    <mainClass>in.nimbo.isDoing.searchEngine.twitter_reader.Twitter4jReader</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
