@@ -1,6 +1,5 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
 
-import in.nimbo.isDoing.searchEngine.elastic.ElasticClient;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class Twitter4jReader {
@@ -87,6 +87,11 @@ public class Twitter4jReader {
     }
 
     void stopGetTwitterStream() {
+        try {
+            elasticTwitterPersister.flush();
+        } catch (IOException e) {
+            logger.error("", e);
+        }
         if (kafkaProducer != null)
             kafkaProducer.stop();
         if (twitterStream != null)

@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class ElasticTwitterPersister {
     static class ElasticTwitterPersisterException extends  Exception {
-        public ElasticTwitterPersisterException(Throwable cause) {
+        ElasticTwitterPersisterException(Throwable cause) {
             super(cause);
         }
 
@@ -28,8 +28,9 @@ public class ElasticTwitterPersister {
 
     private String elasticIndex;
     private String elasticDocument;
+    private int bulkSize;
 
-    public ElasticTwitterPersister() {
+    ElasticTwitterPersister() {
         Engine.getOutput().show("Creating ElasticTwitterPersister");
 
         logger.info("Creating ElasticTwitterPersister");
@@ -38,11 +39,12 @@ public class ElasticTwitterPersister {
         elasticBulkRequest = new BulkRequest();
         elasticIndex = Engine.getConfigs().get("elastic.twitter.persister");
         elasticDocument = Engine.getConfigs().get("elastic.twitter.document");
+        bulkSize = Integer.parseInt(Engine.getConfigs().get("elastic.twitter.bulksize"));
 
         logger.info("ElasticTwitterPersister created and configs are set");
     }
 
-    public void persist(Status status) throws ElasticTwitterPersisterException{
+    void persist(Status status) throws ElasticTwitterPersisterException{
         try {
             IndexRequest indexRequest = new IndexRequest(elasticIndex, elasticDocument);
             indexRequest.source(
@@ -62,11 +64,11 @@ public class ElasticTwitterPersister {
     }
 
     private void flushIfNeeded() throws IOException {
-        if (elasticBulkRequest.numberOfActions() >= 1000_000)
+        if (elasticBulkRequest.numberOfActions() >= bulkSize)
             flush();
     }
 
-    public void flush() throws IOException {
+    void flush() throws IOException {
         if (elasticBulkRequest.numberOfActions() > 0)
             client.bulk(elasticBulkRequest);
 
