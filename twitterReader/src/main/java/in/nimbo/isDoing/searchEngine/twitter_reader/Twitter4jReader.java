@@ -40,7 +40,6 @@ public class Twitter4jReader {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                Engine.getOutput().show("TEST");
                 try {
                     System.out.println(status.getText());
                     elasticTwitterPersister.persist(status);
@@ -62,17 +61,14 @@ public class Twitter4jReader {
 
             @Override
             public void onTrackLimitationNotice(int i) {
-
             }
 
             @Override
             public void onScrubGeo(long l, long l1) {
-
             }
 
             @Override
             public void onStallWarning(StallWarning stallWarning) {
-
             }
 
             @Override
