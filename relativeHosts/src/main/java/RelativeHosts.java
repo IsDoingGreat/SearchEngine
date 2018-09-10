@@ -44,7 +44,7 @@ public class RelativeHosts {
 
                     String sourceHost = sourceLink.split("/")[0];
                     if (sourceHost != null && sourceHost.length() > 0) {
-                        String  normalizedSourceHost = sourceHost.toLowerCase();
+                        String normalizedSourceHost = sourceHost.toLowerCase();
                         linkCells.forEach(cell -> {
                             String link = Bytes.toString(CellUtil.cloneQualifier(cell));
                             String host;
@@ -54,6 +54,9 @@ public class RelativeHosts {
                                 return;
                             }
                             if (host.length() <= 0) {
+                                return;
+                            }
+                            if (normalizedSourceHost.equals(host)) {
                                 return;
                             }
                             records.add(new Tuple2<>(new Tuple2<>(normalizedSourceHost, host), 1));
