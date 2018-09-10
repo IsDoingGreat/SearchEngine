@@ -40,6 +40,7 @@ public class Twitter4jReader {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
+                Engine.getOutput().show("TEST");
                 try {
                     System.out.println(status.getText());
                     elasticTwitterPersister.persist(status);
