@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 
 import java.io.IOException;
@@ -30,13 +31,13 @@ public class BackHosts {
         JavaPairRDD<ImmutableBytesWritable, Result> hBaseData =
                 javaSparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
-        System.out.println("test ");
-
+        LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
         JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMap(r -> r._2.listCells().iterator())
                 .map(r -> Bytes.toString(CellUtil.cloneQualifier(r)))
                 .mapToPair(s -> {
                     String link = s;
                     String host;
+
                     try {
                         host = new URL(link).getHost();
                     } catch (Exception e) {
@@ -46,6 +47,7 @@ public class BackHosts {
                     if (host == null || host.length() <= 0) {
                         return new Tuple2<>("e", 0);
                     }
+                    number_of_loaded.add(1);
                     return new Tuple2<>(host.toLowerCase(), 1);
                 });
 
