@@ -41,6 +41,7 @@ public class Twitter4jReader {
             @Override
             public void onStatus(Status status) {
                 try {
+                    System.out.println(status.getText());
                     elasticTwitterPersister.persist(status);
                     kafkaProducer.produce(status.getText());
                 } catch (ExecutionException e) {
