@@ -1,5 +1,4 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -16,8 +15,6 @@ import scala.Tuple2;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BackHosts {
 
@@ -33,31 +30,28 @@ public class BackHosts {
         JavaPairRDD<ImmutableBytesWritable, Result> hBaseData =
                 javaSparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
 
-        JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMapToPair(
-                record -> {
-                    List<Tuple2<String, Integer>> records = new ArrayList<>();
-                    List<Cell> linkCells = record._2.listCells();
-                    linkCells.forEach(cell -> {
-                        String link = Bytes.toString(CellUtil.cloneQualifier(cell));
-                        String host;
-                        try {
-                            host = new URL(link).getHost();
-                        } catch (Exception e) {
-                            return;
-                        }
-                        if (host.length() <= 0){
-                            return;
-                        }
+        System.out.println("test ");
 
-                        records.add(new Tuple2<>(host.toLowerCase(), 1));
-                    });
+        JavaPairRDD<String, Integer> mapToOne = hBaseData.flatMap(r -> r._2.listCells().iterator())
+                .map(r -> Bytes.toString(CellUtil.cloneQualifier(r)))
+                .mapToPair(s -> {
+                    String link = s;
+                    String host;
+                    try {
+                        host = new URL(link).getHost();
+                    } catch (Exception e) {
+                        return new Tuple2<>("e", 0);
+                    }
 
-                    return records.iterator();
-                }
-        );
+                    if (host == null || host.length() <= 0) {
+                        return new Tuple2<>("e", 0);
+                    }
+                    return new Tuple2<>(host.toLowerCase(), 1);
+                });
+
 
         JavaPairRDD<String, Integer> mapToRefCount = mapToOne.reduceByKey((v1, v2) -> v1 + v2);
-        JavaPairRDD<String, Integer> mapToRefCountFiltered = mapToRefCount.filter(t -> t._2 > FILTER_LIMIT);
+        JavaPairRDD<String, Integer> mapToRefCountFiltered = mapToRefCount.filter(t -> (t._2 > FILTER_LIMIT && !t._1.equals("e")));
 
         Job job = null;
         try {
