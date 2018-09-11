@@ -1,13 +1,14 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
+import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.codehaus.jackson.map.ObjectMapper;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +18,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ShowNewsTrendsServlet extends HttpServlet {
+
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput(), new SystemConfigs("crawler"));
+        Connection connection = HBaseClient.getConnection();
+        TableName tn = TableName.valueOf("newsTrendWords");
+        Table table = connection.getTable(tn);
+        for (int i = 0; i < 15; i++) {
+            Put p = new Put(Bytes.toBytes("word" + i));
+            p.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"), Bytes.toBytes(((int) (Math.random() * 200))));
+            table.put(p);
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> map = new HashMap<>();
@@ -55,7 +69,12 @@ public class ShowNewsTrendsServlet extends HttpServlet {
                     .sorted(Comparator.comparing((Function<Map.Entry<String, Integer>, Integer>) Map.Entry::getValue).reversed())
                     .limit(wordsLimit).collect(Collectors.toList());
 
-            map.put("result", entries);
+            if (entries.isEmpty()) {
+                map.putIfAbsent("errors", new ArrayList<>());
+                ((List) map.get("errors")).add("There is no Trend in specified Time Range");
+            } else {
+                map.put("result", entries);
+            }
         } catch (Exception e) {
             map.putIfAbsent("errors", new ArrayList<>());
             ((List) map.get("errors")).add(e.getMessage());

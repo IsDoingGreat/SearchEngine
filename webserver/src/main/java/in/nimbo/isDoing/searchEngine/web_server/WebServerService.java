@@ -36,9 +36,11 @@ public class WebServerService implements Service {
 
 
         context.addServlet(ShowTwitterTrendsServlet.class, "/tweetTrends/");
+        context.addServlet(HostToHostGraph.class, "/hostToHost/");
         context.addServlet(ShowNewsTrendsServlet.class, "/newsTrends/");
         context.addServlet(WebSearchServlet.class, "/search/");
         context.addServlet(NewsSearchServlet.class, "/news/");
+        context.addServlet(getLatestNews.class, "/latestNews/");
         context.addServlet(SystemStatusServlet.class, "/status/*");
         context.addServlet(DefaultServlet.class, "/");
         logger.info("WebServerHandler Service Created");

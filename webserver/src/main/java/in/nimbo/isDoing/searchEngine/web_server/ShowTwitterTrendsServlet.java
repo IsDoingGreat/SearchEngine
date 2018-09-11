@@ -18,6 +18,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ShowTwitterTrendsServlet extends HttpServlet {
+    public static void main(String[] args) throws Exception {
+        Engine.start(new ConsoleOutput(), new SystemConfigs("crawler"));
+        Connection connection = HBaseClient.getConnection();
+        TableName tn = TableName.valueOf("twitterTrendWords");
+        Table table = connection.getTable(tn);
+        for (int i = 0; i < 15; i++) {
+            Put p = new Put(Bytes.toBytes("word" + i));
+            p.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"), Bytes.toBytes(((int) (Math.random() * 200))));
+            table.put(p);
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, Object> map = new HashMap<>();
@@ -56,7 +68,12 @@ public class ShowTwitterTrendsServlet extends HttpServlet {
                     .sorted(Comparator.comparing((Function<Map.Entry<String, Integer>, Integer>) Map.Entry::getValue).reversed())
                     .limit(wordsLimit).collect(Collectors.toList());
 
-            map.put("result", entries);
+            if (entries.isEmpty()) {
+                map.putIfAbsent("errors", new ArrayList<>());
+                ((List) map.get("errors")).add("There is no Trend in specified Time Range");
+            } else {
+                map.put("result", entries);
+            }
         } catch (Exception e) {
             map.putIfAbsent("errors", new ArrayList<>());
             ((List) map.get("errors")).add(e.getMessage());
@@ -67,17 +84,5 @@ public class ShowTwitterTrendsServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setContentLength(json.getBytes().length);
         resp.getWriter().print(json);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Engine.start(new ConsoleOutput(), new SystemConfigs("crawler"));
-        Connection connection = HBaseClient.getConnection();
-        TableName tn = TableName.valueOf("twitterTrendWords");
-        Table table = connection.getTable(tn);
-        for (int i = 0; i < 15; i++) {
-            Put p = new Put(Bytes.toBytes("word"+i));
-            p.addColumn(Bytes.toBytes("wordCount"), Bytes.toBytes("count"), Bytes.toBytes(((int) (Math.random() * 200))));
-            table.put(p);
-        }
     }
 }
