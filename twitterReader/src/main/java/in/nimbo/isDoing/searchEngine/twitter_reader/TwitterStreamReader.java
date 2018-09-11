@@ -56,17 +56,18 @@ public class TwitterStreamReader {
             @Override
             public void onStatus(Status status) {
                 if (status.getLang().equals("en")) {
-                    try {
-                        System.out.println(status.getText());
-                        elasticTwitterPersister.persist(status);
-                        kafkaProducer.produce(status.getText());
-                    } catch (ExecutionException e) {
-                        logger.error("kafka producer execution exception.", e);
-                    } catch (InterruptedException e) {
-                        logger.error("kafka producer interrupted exception.", e);
-                    } catch (ElasticTwitterPersister.ElasticTwitterPersisterException e) {
-                        logger.error("elasticSearch twitter persister was intrupted", e);
-                    }
+                    System.out.println(status.getText());
+//                    try {
+//                        System.out.println(status.getText());
+//                        elasticTwitterPersister.persist(status);
+//                        kafkaProducer.produce(status.getText());
+//                    } catch (ExecutionException e) {
+//                        logger.error("kafka producer execution exception.", e);
+//                    } catch (InterruptedException e) {
+//                        logger.error("kafka producer interrupted exception.", e);
+//                    } catch (ElasticTwitterPersister.ElasticTwitterPersisterException e) {
+//                        logger.error("elasticSearch twitter persister was intrupted", e);
+//                    }
                 }
             }
 
