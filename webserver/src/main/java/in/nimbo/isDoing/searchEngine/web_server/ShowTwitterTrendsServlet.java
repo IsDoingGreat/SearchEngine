@@ -1,13 +1,14 @@
 package in.nimbo.isDoing.searchEngine.web_server;
 
+import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
 import in.nimbo.isDoing.searchEngine.hbase.HBaseClient;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.codehaus.jackson.map.ObjectMapper;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

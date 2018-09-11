@@ -35,25 +35,33 @@ public class ShowKeyWords extends HttpServlet {
 
 
                 TableName tn = TableName.valueOf(hbaseTableName);
-                Map<String, Integer> keyWords = new HashMap<>();
                 try {
                     Table table = HBaseClient.getConnection().getTable(tn);
                     Get get = new Get(Bytes.toBytes(rowKey));
                     get.addFamily(Bytes.toBytes(hbaseColumnFamily));
                     Result result = table.get(get);
+                    List<Map> resultList = new ArrayList<>();
                     for (Iterator<Cell> it = result.listCells().iterator(); it.hasNext(); ) {
                         Cell cell = it.next();
                         String word = Bytes.toString(CellUtil.cloneQualifier(cell));
                         int count = Bytes.toInt(CellUtil.cloneValue(cell));
-                        keyWords.put(word, count);
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("key", word);
+                        data.put("count", count);
+                        resultList.add(data);
                     }
 
+                    if (resultList.isEmpty()) {
+                        map.putIfAbsent("errors", new ArrayList<>());
+                        ((List) map.get("errors")).add("No Result!");
+                    } else
+                        map.put("result", resultList);
                     table.close();
+
                 } catch (IOException e) {
                     map.putIfAbsent("errors", new ArrayList<>());
                     ((List) map.get("errors")).add(e.getMessage());
                 }
-                map.put("result", keyWords);
             }
         } catch (Exception e) {
             map.putIfAbsent("errors", new ArrayList<>());

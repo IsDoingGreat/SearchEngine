@@ -196,14 +196,17 @@
                 <div id="errors" class="col-sm-12">
                 </div>
                 <div id="result" class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <strong class="card-title">Search Result</strong>
-                        </div>
-                        <div class="card-body">
-                            <table id="search-results" class="table table-striped table-bordered">
-                            </table>
-                        </div>
+                    <div class="feed-box text-center">
+                        <section class="card">
+                            <div class="card-body">
+                                <div class="corner-ribon blue-ribon">
+                                    <i class="fa fa-comment"></i>
+                                </div>
+                                <b style="font-size: 35px;">News Trends</b>
+                            </div>
+                            <ul class="list-group list-group-flush" id="keyword"></ul>
+                            <div id="newsError"></div>
+                        </section>
                     </div>
                 </div>
 
@@ -238,17 +241,6 @@
 
 
 <script type="text/javascript">
-    var datatable = $('#search-results').DataTable({
-        order: [3,'desc'],
-        columns: [
-            {title: "Title"},
-            {title: "Text"},
-            {title: "Url"},
-            {title: "Score."}
-        ]
-    });
-
-
     function formSearch(e) {
         e.preventDefault();
         var form = $("#search-form");
@@ -265,13 +257,21 @@
             "</div>";
     }
 
+   function getTrendHtml(t, n) {
+        return "<li class=\"list-group-item\">" +
+            "<a href=\"#\">" + t + "<span" +
+            "        class=\"badge badge-success pull-right\">" + n + "</span></a>" +
+            "</li>";
+    }
+
     function search(q) {
         var errorString = "";
         $.ajax({
             dataType: "json",
-            url: "http://localhost:50000/search/",
+            url: "http://localhost:50000/showKeyWords/",
             data:q,
             beforeSend: function() {
+                jQuery("#keyword").html("");
                 jQuery("#result").slideUp();
                 jQuery(".loader").show();
                 jQuery("#search-area").hide();
@@ -285,13 +285,11 @@
                         }
                     );
                 } else if (('result' in data)) {
-                    datatable.clear();
-
-                    var dataSet = [];
-                    data.result.forEach(function (d) {
-                        dataSet.push([d.title, d.text, d.url, d.score])
+                    var text = "";
+                    data.result.forEach(function (t) {
+                        text += getTrendHtml(t.key,t.count);
                     });
-                    datatable.rows.add(dataSet).columns.adjust().draw();
+                    jQuery("#keyword").html(text);
                 }
             },
             error: function (jqXHR, status, e) {
@@ -309,6 +307,7 @@
             }
         });
     }
+
 </script>
 
 
