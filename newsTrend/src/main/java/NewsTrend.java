@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class NewsTrend {
-    public static final int STOP_WORD_LENGTH = 3;
+    public static final int STOP_WORD_LENGTH = 4;
     static final String SPACE = "\\W";
     private static final String GROUP_ID = "TTGP";
     private static final String TOPICS = "newsItems";
@@ -98,43 +98,42 @@ public class NewsTrend {
     }
 
     public static void main(String[] args) {
-        int durationsMin = 1;
-        String brokers = "localhost:9092";
-
-        // inpput {master jarPath (true/false) durationsSecond brokers}
-        if (args.length < 4) {
-            System.out.println("Invalid args");
-            return;
-        }
-
-        String master = args[0];
-        SparkConf sparkConf = new SparkConf().setAppName(NewsTrend.class.getSimpleName()).setMaster(master).setJars(new String[]{args[1]});
-        if (Boolean.valueOf(args[2])) {
-            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        }
-
-        if (args[3] != null) {
-            durationsMin = Integer.parseInt(args[3]);
-        }
-        if (args[4] != null) {
-            brokers = args[4];
-        }
+        int durationsMin = 30;
+        String brokers = "srv2:9092,srv3:9092";
+//        if (args.length < 4) {
+//            System.out.println("Invalid args");
+//            return;
+//        }
+//
+//        String master = args[0];
+//        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master).setJars(new String[]{args[1]});
+//        if (Boolean.valueOf(args[2])) {
+//            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        }
+//
+//        if (args[3] != null) {
+//            durationsMin = Integer.parseInt(args[3]);
+//        }
+//        if (args[4] != null) {
+//            brokers = args[4];
+//        }
 
         /**
          * for using in local
          */
-//        String master = "local[1]";
-//        SparkConf sparkConf = new SparkConf().setAppName(NewsTrend.class.getSimpleName()).setMaster(master);
-//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+
+        String master = "local[*]";
+        SparkConf sparkConf = new SparkConf().setAppName(NewsTrend.class.getSimpleName()).setMaster(master);
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.minutes(durationsMin));
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
-        configuration.set("hbase.cluster.distributed", "true");
-        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
-        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
+//        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+//        configuration.set("hbase.cluster.distributed", "true");
+//        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+//        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
         KAFKA_PARAMS.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         KAFKA_PARAMS.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
