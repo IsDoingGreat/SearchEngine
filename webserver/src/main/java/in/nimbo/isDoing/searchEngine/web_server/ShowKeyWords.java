@@ -50,7 +50,8 @@ public class ShowKeyWords extends HttpServlet {
 
                     table.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    map.putIfAbsent("errors", new ArrayList<>());
+                    ((List) map.get("errors")).add(e.getMessage());
                 }
                 map.put("result", keyWords);
             }
