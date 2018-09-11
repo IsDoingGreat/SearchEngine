@@ -27,8 +27,8 @@ import java.util.*;
 public class TwitterTrend {
     public static final int STOP_WORD_LENGTH = 0;
     static final String SPACE = "\\W";
-    private static final String GROUP_ID = "twitterTrendGP";
-    private static final String TOPICS = "tweets";
+    private static final String GROUP_ID = "TTGP";
+    private static final String TOPICS = "tweetsItems";
     private static final String AUTO_OFFSET_RESET_CONFIG = "earliest";
     private static final String HBASE_TABLE_NAME = "twitterTrendWords";
     private static final String HBASE_COLUMN_FAMILY = "WC";
@@ -66,71 +66,71 @@ public class TwitterTrend {
         sortedWords.print();
 
         // Put trending words to HBase table
-        sortedWords.foreachRDD(
-                rdd -> {
-                    Job job = null;
-                    try {
-                        job = Job.getInstance(configuration);
-                        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, HBASE_TABLE_NAME);
-                        job.setOutputFormatClass(TableOutputFormat.class);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
-                            record -> {
-                                int count = record._1;
-                                String word = record._2;
-                                Put put = new Put(Bytes.toBytes(word));
-                                put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
-                                return new Tuple2<>(new ImmutableBytesWritable(), put);
-
-                            });
-                    hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
-                }
-        );
+//        sortedWords.foreachRDD(
+//                rdd -> {
+//                    Job job = null;
+//                    try {
+//                        job = Job.getInstance(configuration);
+//                        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, HBASE_TABLE_NAME);
+//                        job.setOutputFormatClass(TableOutputFormat.class);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
+//                            record -> {
+//                                int count = record._1;
+//                                String word = record._2;
+//                                Put put = new Put(Bytes.toBytes(word));
+//                                put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
+//                                return new Tuple2<>(new ImmutableBytesWritable(), put);
+//
+//                            });
+//                    hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
+//                }
+//        );
 
         javaStreamingContext.start();
         javaStreamingContext.awaitTermination();
     }
 
     public static void main(String[] args) {
-        int durationsSecond = 1 * 1 * 60;
-        String brokers = "localhost:9092";
-        if (args.length < 4) {
-            System.out.println("Invalid args");
-            return;
-        }
-
-        String master = args[0];
-        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master).setJars(new String[]{args[1]});
-        if (Boolean.valueOf(args[2])) {
-            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        }
-
-        if (args[3] != null) {
-            durationsSecond = Integer.parseInt(args[3]);
-        }
-        if (args[4] != null) {
-            brokers = args[4];
-        }
+        int durationsMin = 30;
+        String brokers = "srv2:9092,srv3:9092";
+//        if (args.length < 4) {
+//            System.out.println("Invalid args");
+//            return;
+//        }
+//
+//        String master = args[0];
+//        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master).setJars(new String[]{args[1]});
+//        if (Boolean.valueOf(args[2])) {
+//            sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+//        }
+//
+//        if (args[3] != null) {
+//            durationsMin = Integer.parseInt(args[3]);
+//        }
+//        if (args[4] != null) {
+//            brokers = args[4];
+//        }
 
         /**
          * for using in local
          */
 
-//        String master = "local[1]"
-//        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master);
-//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        String master = "local[*]";
+        SparkConf sparkConf = new SparkConf().setAppName(TwitterTrend.class.getSimpleName()).setMaster(master);
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
-        javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.seconds(durationsSecond));
+        javaStreamingContext = new JavaStreamingContext(sparkConf, Durations.minutes(durationsMin));
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
-        configuration.set("hbase.cluster.distributed", "true");
-        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
-        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
+//        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
+//        configuration.set("hbase.cluster.distributed", "true");
+//        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+//        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
         KAFKA_PARAMS.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         KAFKA_PARAMS.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
