@@ -1,21 +1,22 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
 
-import in.nimbo.isDoing.searchEngine.engine.Engine;
-import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
 import org.slf4j.LoggerFactory;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.concurrent.ExecutionException;
-
 public class TwitterStreamReader {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(TwitterStreamReader.class);
     private static ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-    private static ElasticTwitterPersister elasticTwitterPersister = new ElasticTwitterPersister();
-    private static KafkaProducerController kafkaProducer = new KafkaProducerController(
-            Engine.getConfigs().get("kafka.brokers"),
-            Engine.getConfigs().get("twitterReader.kafka.producerClientId"),
-            Engine.getConfigs().get("twitterReader.kafka.topicName"));
+//    private static ElasticTwitterPersister elasticTwitterPersister = new ElasticTwitterPersister();
+//    private static KafkaProducerController kafkaProducer = new KafkaProducerController(
+//            Engine.getConfigs().get("kafka.brokers"),
+//            Engine.getConfigs().get("twitterReader.kafka.producerClientId"),
+//            Engine.getConfigs().get("twitterReader.kafka.topicName"));
+
+//    private static KafkaProducerController kafkaProducer = new KafkaProducerController(
+//            "localhost:9092",
+//            "1",
+//            "tweetsItems");
 
     public static void main(String[] args) {
         if (args.length < 4) {
@@ -38,18 +39,6 @@ public class TwitterStreamReader {
             @Override
             public void onStatus(Status status) {
                 System.out.println(status.getText());
-
-                try {
-                    System.out.println(status.getText());
-                    elasticTwitterPersister.persist(status);
-                    kafkaProducer.produce(status.getText());
-                } catch (ExecutionException e) {
-                    logger.error("kafka producer execution exception.", e);
-                } catch (InterruptedException e) {
-                    logger.error("kafka producer interrupted exception.", e);
-                } catch (ElasticTwitterPersister.ElasticTwitterPersisterException e) {
-                    logger.error("elasticSearch twitter persister was intrupted", e);
-                }
             }
 
             @Override
