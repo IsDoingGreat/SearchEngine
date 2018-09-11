@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class TwitterTrend {
-    public static final int STOP_WORD_LENGTH = 0;
+    public static final int STOP_WORD_LENGTH = 4;
     static final String SPACE = "\\W";
     private static final String GROUP_ID = "TTGP";
     private static final String TOPICS = "tweetsItems";
