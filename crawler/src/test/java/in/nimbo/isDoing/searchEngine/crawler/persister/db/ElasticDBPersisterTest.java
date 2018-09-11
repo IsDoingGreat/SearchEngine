@@ -25,7 +25,7 @@ import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 
 public class ElasticDBPersisterTest {
-
+/*
     private BulkRequest elasticBulkRequest = new BulkRequest();
 
     @Before
@@ -95,7 +95,7 @@ public class ElasticDBPersisterTest {
                     "This domain is established to be used for illustrative examples in documents. You may use this domain in examples without prior coordination or asking for permission. " +
                     "More information...", hit.getSourceAsMap().get("text"));
         }
-    }
+    }*/
 
 //    @Test
 //    public void persistWithAutomaticFlush(){

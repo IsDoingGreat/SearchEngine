@@ -13,6 +13,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-stream</artifactId>
+            <version>4.0.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>2.3.0</version>
@@ -54,7 +60,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>in.nimbo.isDoing.searchEngine.twitter_reader.TwitterReaderService</mainClass>
+                                    <mainClass>in.nimbo.isDoing.searchEngine.twitter_reader.TwitterStreamReader</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>

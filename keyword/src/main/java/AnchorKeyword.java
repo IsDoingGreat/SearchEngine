@@ -1,5 +1,4 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Put;
@@ -20,16 +19,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AnchorKeyword {
 
     public static final int STOP_WORD_LENGTH = 3;
     public static final int KEYWORDS_LIMIT = 10;
-    public static final int FILTER_LIMIT = 10;
+    public static final int FILTER_LIMIT = 100;
     private static final String hBaseInputTableName = "backLinks";
     private static final String hBaseInputColumnFamily = "links";
-    private static final String hBaseOutputTableName = "hostKeyWords";
+    private static final String hBaseOutputTableName = "hostKeyWordsT";
     private static final String hBaseOutputColumnFamily = "K";
     private static JavaSparkContext javaSparkContext;
     private static Configuration configuration;
@@ -40,33 +38,44 @@ public class AnchorKeyword {
 
 
         LongAccumulator number_of_loaded = javaSparkContext.sc().longAccumulator("number of loaded");
-        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMapToPair(
-                record -> {
-                    List<Tuple2<Tuple2<String, String>, Integer>> records = new ArrayList<>();
-                    List<Cell> linkCells = record._2.listCells();
-                    linkCells.forEach(cell -> {
-                        String link = Bytes.toString(CellUtil.cloneQualifier(cell));
-                        String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
-                        List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
-                        String host;
-                        try {
-                            host = new URL(link).getHost().toLowerCase();
-                        } catch (Exception e) {
-                            return;
-                        }
+//        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMap(r -> r._2.listCells().iterator())
+//                .flatMapToPair(cell -> {
+//                    List<Tuple2<Tuple2<String, String>, Integer>> records = new ArrayList<>();
+//                    String link = Bytes.toString(CellUtil.cloneQualifier(cell));
+//                    String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
+//                    List<String> anchors = Arrays.stream(anchorText.split("[^\\w']+")).filter(s -> s.length() > STOP_WORD_LENGTH).collect(Collectors.toList());
+//                    String host;
+//                    try {
+//                        host = new URL(link).getHost().toLowerCase();
+//                    } catch (Exception e) {
+//                        throw new IllegalStateException("Invalid host");
+//                    }
+//
+//                    for (String anchor : anchors) {
+//                        if (host.length() > 0) {
+//                            records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
+//                        }
+//                    }
+//                    number_of_loaded.add(1);
+//                    return records.iterator();
+//                });
 
-                        for (String anchor : anchors) {
-                            if (host.length() > 0) {
-                                records.add(new Tuple2<>(new Tuple2<>(host, anchor), 1));
-                            }
-                        }
-
-                    });
-
+        JavaPairRDD<Tuple2<String, String>, Integer> mapToAnchor = hBaseData.flatMap(r -> r._2.listCells().iterator())
+                .mapToPair(cell -> {
+                    String link = Bytes.toString(CellUtil.cloneQualifier(cell));
+                    String host;
+                    try {
+                        host = new URL(link).getHost().toLowerCase();
+                    } catch (Exception e) {
+                        return new Tuple2<>("e", "");
+                    }
+                    String anchorText = Bytes.toString(CellUtil.cloneValue(cell)).toLowerCase();
                     number_of_loaded.add(1);
-                    return records.iterator();
-                }
-        );
+                    return new Tuple2<>(host, anchorText);
+                })
+                .flatMapToPair(t -> Arrays.stream(t._2.split("[^\\w']+"))
+                        .filter(s -> s.length() > STOP_WORD_LENGTH)
+                        .map(s -> new Tuple2<>(new Tuple2<>(t._1, s), 1)).iterator());
 
         JavaPairRDD<Tuple2<String, String>, Integer> hostToAnchorCount = mapToAnchor.reduceByKey((v1, v2) -> v1 + v2);
 
@@ -91,7 +100,7 @@ public class AnchorKeyword {
                             if (minValue > keywordsCount[i]) {
                                 minValue = keywordsCount[i];
                                 index = i;
-                            }
+                            }   
                         }
 
                         if (index != -1 && t._2 > minValue) {
@@ -165,15 +174,16 @@ public class AnchorKeyword {
          */
 //        String master = "local[*]";
 //        SparkConf sparkConf = new SparkConf().setAppName(AnchorKeyword.class.getSimpleName()).setMaster(master);
+//        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
 
         javaSparkContext = new JavaSparkContext(sparkConf);
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
         configuration.set("hbase.cluster.distributed", "true");
-        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
         configuration.set(TableInputFormat.SCAN_COLUMN_FAMILY, hBaseInputColumnFamily);

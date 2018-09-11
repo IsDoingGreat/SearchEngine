@@ -34,7 +34,7 @@ public class WebServerService implements Service {
         context.setResourceBase(Paths.get(rootDir).toAbsolutePath().toString());
         server.setHandler(context);
 
-
+        context.addServlet(ShowKeyWords.class, "/showKeyWords/");
         context.addServlet(ShowTwitterTrendsServlet.class, "/tweetTrends/");
         context.addServlet(HostToHostGraph.class, "/hostToHost/");
         context.addServlet(ShowNewsTrendsServlet.class, "/newsTrends/");
