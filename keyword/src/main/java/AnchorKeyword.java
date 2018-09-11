@@ -180,10 +180,10 @@ public class AnchorKeyword {
 
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
-        configuration.set("hbase.rootdir", "hdfs://srv1:9000/hbase");
+        configuration.set("hbase.rootdir", "hdfs://srv2:9000/hbase");
         configuration.set("hbase.cluster.distributed", "true");
-        configuration.set("hbase.zookeeper.quorum", "srv1,srv2,srv3");
-        configuration.set("fs.defaultFS", "hdfs://srv1:9000");
+        configuration.set("hbase.zookeeper.quorum", "srv2,srv3");
+        configuration.set("fs.defaultFS", "hdfs://srv2:9000");
 
         configuration.set(TableInputFormat.INPUT_TABLE, hBaseInputTableName);
         configuration.set(TableInputFormat.SCAN_COLUMN_FAMILY, hBaseInputColumnFamily);
