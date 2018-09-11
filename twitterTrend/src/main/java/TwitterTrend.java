@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class TwitterTrend {
+    public static final int FILTER_LIMIT = 200;
     public static final int STOP_WORD_LENGTH = 4;
     static final String SPACE = "\\W";
     private static final String GROUP_ID = "TTGP";
@@ -62,9 +63,10 @@ public class TwitterTrend {
         JavaPairDStream<Integer, String> swappedPair = wordCounts.mapToPair(Tuple2::swap);
         JavaPairDStream<Integer, String> sortedWords = swappedPair.transformToPair(
                 (Function<JavaPairRDD<Integer, String>, JavaPairRDD<Integer, String>>) jPairRDD -> jPairRDD.sortByKey(false));
+        JavaPairDStream<Integer, String> filter = sortedWords.filter(t -> (t._1 > FILTER_LIMIT));
 
         // Put trending words to HBase table
-        sortedWords.foreachRDD(
+        filter.foreachRDD(
                 rdd -> {
                     Job job = null;
                     try {
