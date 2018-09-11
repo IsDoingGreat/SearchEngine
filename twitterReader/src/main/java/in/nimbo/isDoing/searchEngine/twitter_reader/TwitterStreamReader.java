@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.concurrent.ExecutionException;
-
 public class TwitterStreamReader {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterStreamReader.class);
@@ -55,18 +53,25 @@ public class TwitterStreamReader {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                if (status.getLang().equals("en")) {
-                    try {
-                        System.out.println(status.getText());
-                        elasticTwitterPersister.persist(status);
-                        kafkaProducer.produce(status.getText());
-                    } catch (ExecutionException e) {
-                        logger.error("kafka producer execution exception.", e);
-                    } catch (InterruptedException e) {
-                        logger.error("kafka producer interrupted exception.", e);
-                    } catch (ElasticTwitterPersister.ElasticTwitterPersisterException e) {
-                        logger.error("elasticSearch twitter persister was intrupted", e);
+
+                if (status != null && status.getLang().equals("en")) {
+//                    try {
+                    StringBuilder hashtagString = new StringBuilder();
+                    for (HashtagEntity hashtagEntity : status.getHashtagEntities()) {
+                        hashtagString.append(hashtagEntity.getText());
                     }
+                    System.out.println(hashtagString.toString());
+
+//                        elasticTwitterPersister.persist(status);
+//                        kafkaProducer.produce(Long.toString(status.getId()), hashtagString.toString());
+
+//                    } catch (ExecutionException e) {
+//                        logger.error("kafka producer execution exception.", e);
+//                    } catch (InterruptedException e) {
+//                        logger.error("kafka producer interrupted exception.", e);
+//                    } catch (ElasticTwitterPersister.ElasticTwitterPersisterException e) {
+//                        logger.error("elasticSearch twitter persister was intrupted", e);
+//                    }
                 }
             }
 
