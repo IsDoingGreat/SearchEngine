@@ -4,31 +4,40 @@ import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
+import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
+import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
+import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class TwitterStreamReader {
+public class TwitterStreamReader implements Service {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterStreamReader.class);
+
     private  ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
     private ElasticTwitterPersister elasticTwitterPersister;
     private KafkaProducerController kafkaProducer;
 
     private Meter meter;
-    private static JmxReporter jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
+    private JmxReporter jmxReporter;
 
-    private TwitterStreamReader(String[] args) {
+    private TwitterStreamFactory twitterStreamFactory;
+    private TwitterStream twitterStream;
+
+
+    private TwitterStreamReader() {
         configurationBuilder.setDebugEnabled(true)
-                .setOAuthConsumerKey(args[0])
-                .setOAuthConsumerSecret(args[1])
-                .setOAuthAccessToken(args[2])
-                .setOAuthAccessTokenSecret(args[3]);
+                .setOAuthConsumerKey(Engine.getConfigs().get("twitter.api.key"))
+                .setOAuthConsumerSecret(Engine.getConfigs().get("twitter.api.secret.key"))
+                .setOAuthAccessToken(Engine.getConfigs().get("twitter.api.access.token"))
+                .setOAuthAccessTokenSecret(Engine.getConfigs().get("twitter.api.access.token.secret"));
 
         kafkaProducer = new KafkaProducerController(
                 Engine.getConfigs().get("kafka.brokers"),
@@ -36,25 +45,26 @@ public class TwitterStreamReader {
                 Engine.getConfigs().get("twitterReader.kafka.topicName"));
 
         elasticTwitterPersister = new ElasticTwitterPersister();
+
+        SharedMetricRegistries.setDefault("metricRegistry");
         meter = SharedMetricRegistries.getDefault().meter("englishTweetsMetric");
+        jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
+
+        twitterStreamFactory = new TwitterStreamFactory(configurationBuilder.build());
+        twitterStream = twitterStreamFactory.getInstance();
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 4) {
-            System.out.println("Invalid Input");
-            return;
-        }
-
-        jmxReporter.start();
+        Engine.start(new ConsoleOutput(), new SystemConfigs("twitterreader"));
 
         System.out.println("starting");
-        TwitterStreamReader twitterStreamReader = new TwitterStreamReader(args);
+        TwitterStreamReader twitterStreamReader = new TwitterStreamReader();
         twitterStreamReader.getTwitterStream();
         System.out.println("started");
 
     }
 
-    private void getTwitterStream() {
+    public void getTwitterStream() {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
@@ -99,9 +109,29 @@ public class TwitterStreamReader {
                 logger.error("Exception : ", e);
             }
         };
-        TwitterStreamFactory twitterStreamFactory = new TwitterStreamFactory(configurationBuilder.build());
-        TwitterStream twitterStream = twitterStreamFactory.getInstance();
         twitterStream.addListener(listener);
         twitterStream.sample();
+    }
+
+    @Override
+    public void start() {
+        jmxReporter.start();
+
+    }
+
+    @Override
+    public void stop() {
+        twitterStream.shutdown();
+        jmxReporter.stop();
+    }
+
+    @Override
+    public Map<String, Object> status() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return "TwitterStreamReader";
     }
 }
