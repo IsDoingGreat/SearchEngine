@@ -1,11 +1,7 @@
 package in.nimbo.isDoing.searchEngine.twitter_reader;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.engine.SystemConfigs;
-import in.nimbo.isDoing.searchEngine.engine.interfaces.Service;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
 import in.nimbo.isDoing.searchEngine.pipeline.Console.ConsoleOutput;
 import org.slf4j.Logger;
@@ -13,20 +9,16 @@ import org.slf4j.LoggerFactory;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class TwitterStreamReader implements Service {
+public class TwitterStreamReader {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterStreamReader.class);
 
-    private  ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+    private ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
     private ElasticTwitterPersister elasticTwitterPersister;
     private KafkaProducerController kafkaProducer;
-
-    private Meter meter;
-    private JmxReporter jmxReporter;
 
     private TwitterStreamFactory twitterStreamFactory;
     private TwitterStream twitterStream;
@@ -46,17 +38,12 @@ public class TwitterStreamReader implements Service {
 
         elasticTwitterPersister = new ElasticTwitterPersister();
 
-        SharedMetricRegistries.setDefault("metricRegistry");
-        meter = SharedMetricRegistries.getDefault().meter("englishTweetsMetric");
-        jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
-
         twitterStreamFactory = new TwitterStreamFactory(configurationBuilder.build());
         twitterStream = twitterStreamFactory.getInstance();
     }
 
     public static void main(String[] args) throws Exception {
         Engine.start(new ConsoleOutput(), new SystemConfigs("twitterreader"));
-
         System.out.println("starting");
         TwitterStreamReader twitterStreamReader = new TwitterStreamReader();
         twitterStreamReader.getTwitterStream();
@@ -73,7 +60,6 @@ public class TwitterStreamReader implements Service {
                         System.out.println(status.getText());
                         elasticTwitterPersister.persist(status);
                         kafkaProducer.produce(status.getText());
-                        meter.mark();
                     } catch (ExecutionException e) {
                         logger.error("kafka producer execution exception.", e);
                     } catch (InterruptedException e) {
@@ -111,27 +97,5 @@ public class TwitterStreamReader implements Service {
         };
         twitterStream.addListener(listener);
         twitterStream.sample();
-    }
-
-    @Override
-    public void start() {
-        jmxReporter.start();
-
-    }
-
-    @Override
-    public void stop() {
-        twitterStream.shutdown();
-        jmxReporter.stop();
-    }
-
-    @Override
-    public Map<String, Object> status() {
-        return null;
-    }
-
-    @Override
-    public String getName() {
-        return "TwitterStreamReader";
     }
 }
