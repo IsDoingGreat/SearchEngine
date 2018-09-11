@@ -12,20 +12,9 @@ import twitter4j.Status;
 import java.io.IOException;
 
 public class ElasticTwitterPersister {
-    static class ElasticTwitterPersisterException extends  Exception {
-        ElasticTwitterPersisterException(Throwable cause) {
-            super(cause);
-        }
-
-        public ElasticTwitterPersisterException(String message) {
-            super(message);
-        }
-    }
     private static final Logger logger = LoggerFactory.getLogger(ElasticTwitterPersister.class);
-
     private BulkRequest elasticBulkRequest;
     private RestHighLevelClient client;
-
     private String elasticIndex;
     private String elasticDocument;
     private int bulkSize;
@@ -44,7 +33,7 @@ public class ElasticTwitterPersister {
         logger.info("ElasticTwitterPersister created and configs are set");
     }
 
-    void persist(Status status) throws ElasticTwitterPersisterException{
+    void persist(Status status) throws ElasticTwitterPersisterException {
         try {
             IndexRequest indexRequest = new IndexRequest(elasticIndex, elasticDocument);
             indexRequest.source(
@@ -73,5 +62,15 @@ public class ElasticTwitterPersister {
             client.bulk(elasticBulkRequest);
 
         elasticBulkRequest = new BulkRequest();
+    }
+
+    static class ElasticTwitterPersisterException extends Exception {
+        ElasticTwitterPersisterException(Throwable cause) {
+            super(cause);
+        }
+
+        public ElasticTwitterPersisterException(String message) {
+            super(message);
+        }
     }
 }
