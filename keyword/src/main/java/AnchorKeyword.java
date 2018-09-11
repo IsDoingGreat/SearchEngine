@@ -100,7 +100,7 @@ public class AnchorKeyword {
                             if (minValue > keywordsCount[i]) {
                                 minValue = keywordsCount[i];
                                 index = i;
-                            }
+                            }   
                         }
 
                         if (index != -1 && t._2 > minValue) {

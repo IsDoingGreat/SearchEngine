@@ -2,11 +2,9 @@ package in.nimbo.isDoing.searchEngine.twitter_reader;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.Meter;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import in.nimbo.isDoing.searchEngine.engine.Engine;
 import in.nimbo.isDoing.searchEngine.kafka.KafkaProducerController;
-import org.apache.hadoop.hbase.metrics.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.*;
@@ -23,6 +21,7 @@ public class TwitterStreamReader {
     private KafkaProducerController kafkaProducer;
 
     private Meter meter;
+    private static JmxReporter jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
 
     private TwitterStreamReader(String[] args) {
         configurationBuilder.setDebugEnabled(true)
@@ -46,7 +45,6 @@ public class TwitterStreamReader {
             return;
         }
 
-        JmxReporter jmxReporter = JmxReporter.forRegistry(SharedMetricRegistries.getDefault()).build();
         jmxReporter.start();
 
         System.out.println("starting");
@@ -56,7 +54,7 @@ public class TwitterStreamReader {
 
     }
 
-    public void getTwitterStream() {
+    private void getTwitterStream() {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
