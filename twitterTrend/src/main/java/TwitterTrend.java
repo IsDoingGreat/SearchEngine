@@ -63,32 +63,30 @@ public class TwitterTrend {
         JavaPairDStream<Integer, String> sortedWords = swappedPair.transformToPair(
                 (Function<JavaPairRDD<Integer, String>, JavaPairRDD<Integer, String>>) jPairRDD -> jPairRDD.sortByKey(false));
 
-        sortedWords.print();
-
         // Put trending words to HBase table
-//        sortedWords.foreachRDD(
-//                rdd -> {
-//                    Job job = null;
-//                    try {
-//                        job = Job.getInstance(configuration);
-//                        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, HBASE_TABLE_NAME);
-//                        job.setOutputFormatClass(TableOutputFormat.class);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                    JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
-//                            record -> {
-//                                int count = record._1;
-//                                String word = record._2;
-//                                Put put = new Put(Bytes.toBytes(word));
-//                                put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
-//                                return new Tuple2<>(new ImmutableBytesWritable(), put);
-//
-//                            });
-//                    hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
-//                }
-//        );
+        sortedWords.foreachRDD(
+                rdd -> {
+                    Job job = null;
+                    try {
+                        job = Job.getInstance(configuration);
+                        job.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, HBASE_TABLE_NAME);
+                        job.setOutputFormatClass(TableOutputFormat.class);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    JavaPairRDD<ImmutableBytesWritable, Put> hBaseBulkPut = rdd.mapToPair(
+                            record -> {
+                                int count = record._1;
+                                String word = record._2;
+                                Put put = new Put(Bytes.toBytes(word));
+                                put.addColumn(Bytes.toBytes(HBASE_COLUMN_FAMILY), Bytes.toBytes(HBASE_QUALIFIER), Bytes.toBytes(count));
+                                return new Tuple2<>(new ImmutableBytesWritable(), put);
+
+                            });
+                    hBaseBulkPut.saveAsNewAPIHadoopDataset(job.getConfiguration());
+                }
+        );
 
         javaStreamingContext.start();
         javaStreamingContext.awaitTermination();
