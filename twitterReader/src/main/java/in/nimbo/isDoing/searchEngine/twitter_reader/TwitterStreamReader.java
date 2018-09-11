@@ -58,7 +58,6 @@ public class TwitterStreamReader {
 
                 if (status != null && status.getLang().equals("en")) {
                     try {
-                        System.out.println(status.getId() + " : " + status.getText());
                         elasticTwitterPersister.persist(status);
                         kafkaProducer.produce(Long.toString(status.getId()), status.getText());
 
