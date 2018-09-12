@@ -287,6 +287,8 @@
                 } else if (('result' in data)) {
                     var text = "";
                     data.result.forEach(function (t) {
+                        if(t.key == "https" || t.key == "their" || t.key == "there")
+                            return;
                         text += getTrendHtml(t.key, t.value);
                     });
                     jQuery("#twitter").html(text);
