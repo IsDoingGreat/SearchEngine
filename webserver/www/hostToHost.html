@@ -208,7 +208,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "http://localhost:50000/hostToHost/",
+            url: site+"hostToHost/",
             data: host ,
             beforeSend: function() {
                 jQuery("#result").slideUp();
