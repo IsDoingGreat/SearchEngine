@@ -58,7 +58,7 @@ public class HostToHostGraph extends HttpServlet {
             Table table = connection.getTable(tn);
 
             Get requestedHostGet = new Get(Bytes.toBytes(requestedHost));
-            requestedHostGet.addFamily(Bytes.toBytes("I"));
+            requestedHostGet.addFamily(Bytes.toBytes("info"));
 
             Result result = table.get(requestedHostGet);
 
