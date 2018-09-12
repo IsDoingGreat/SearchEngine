@@ -6,3 +6,5 @@ function getError(msg) {
         "     </button>" +
         "</div>";
 }
+
+var site = "http://localhost:50000/";

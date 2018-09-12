@@ -51,6 +51,20 @@
                 <li>
                     <a href="index.html"> <i class="menu-icon fa fa-dashboard"></i>Dashboard </a>
                 </li>
+                <li>
+                    <a href="trends.html"> <i class="menu-icon fa fa-dashboard"></i>Trends </a>
+                </li>
+                <li>
+                    <a href="searchWeb.html"> <i class="menu-icon fa fa-dashboard"></i>Search </a>
+                </li>
+                <li>
+                    <a href="hostToHost.html"> <i class="menu-icon fa fa-dashboard"></i>hostToHost Graph </a>
+                </li>
+
+                <li>
+                    <a href="hostKeyWords.html"> <i class="menu-icon fa fa-dashboard"></i>KeyWords</a>
+                </li>
+
             </ul>
         </div><!-- /.navbar-collapse -->
     </nav>
@@ -227,7 +241,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "http://localhost:50000/newsTrends/",
+            url: site + "newsTrends/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
@@ -261,7 +275,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "http://localhost:50000/tweetTrends/",
+            url: site + "tweetTrends/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
@@ -292,9 +306,9 @@
     }
 
     function getNewsFormat(t) {
-        return "<div><a href=\'"+t.url+"\'><h3>"+t.title+"</h3></a><span class=\"badge badge-warning\">"+t.category+"</span>" +
-            "<span class=\"badge badge-info\">"+t.date+"</span>" +
-            "<p class=\"card-text\">"+t.text+"</p>" +
+        return "<div><a href=\'" + t.url + "\'><h3>" + t.title + "</h3></a><span class=\"badge badge-warning\">" + t.category + "</span>" +
+            "<span class=\"badge badge-info\">" + t.date + "</span>" +
+            "<p class=\"card-text\">" + t.text + "</p>" +
             "</div><hr>";
     }
 
@@ -302,7 +316,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "http://localhost:50000/latestNews/",
+            url: site + "latestNews/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {

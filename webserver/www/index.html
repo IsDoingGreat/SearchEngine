@@ -35,7 +35,6 @@
 <body>
 
 
-<!-- Left Panel -->
 
 <aside id="left-panel" class="left-panel">
     <nav class="navbar navbar-expand-sm navbar-default">
@@ -51,9 +50,22 @@
 
         <div id="main-menu" class="main-menu collapse navbar-collapse">
             <ul class="nav navbar-nav">
-                <li class="active">
+                <li>
                     <a href="index.html"> <i class="menu-icon fa fa-dashboard"></i>Dashboard </a>
                 </li>
+                <li>
+                    <a href="trends.html"> <i class="menu-icon fa fa-dashboard"></i>Trends </a>
+                </li>
+                <li>
+                    <a href="searchWeb.html"> <i class="menu-icon fa fa-dashboard"></i>Search </a>
+                </li>
+                <li>
+                    <a href="hostToHost.html"> <i class="menu-icon fa fa-dashboard"></i>hostToHost Graph </a>
+                </li>
+                <li>
+                    <a href="hostKeyWords.html"> <i class="menu-icon fa fa-dashboard"></i>KeyWords</a>
+                </li>
+
             </ul>
         </div><!-- /.navbar-collapse -->
     </nav>
@@ -81,12 +93,14 @@
                             <button class="search-close" type="submit"><i class="fa fa-close"></i></button>
                         </form>
                     </div>
+
                 </div>
             </div>
+
+
         </div>
 
     </header><!-- /header -->
-    <!-- Header-->
 
     <div class="breadcrumbs">
         <div class="col-sm-4">
@@ -291,7 +305,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "http://localhost:50000/status/",
+            url: site + "status/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {

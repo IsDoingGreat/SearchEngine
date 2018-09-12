@@ -33,7 +33,7 @@
 
 </head>
 <body>
-<!-- Left Panel -->
+
 <aside id="left-panel" class="left-panel">
     <nav class="navbar navbar-expand-sm navbar-default">
 
@@ -49,21 +49,20 @@
         <div id="main-menu" class="main-menu collapse navbar-collapse">
             <ul class="nav navbar-nav">
                 <li>
-                    <a href="index.html"> <i class="menu-icon fa fa-dashboard"></i>Dashboard</a>
+                    <a href="index.html"> <i class="menu-icon fa fa-dashboard"></i>Dashboard </a>
                 </li>
-
                 <li>
-                    <a href="trends.html"> <i class="menu-icon fa fa-dashboard"></i>Trends</a>
+                    <a href="trends.html"> <i class="menu-icon fa fa-dashboard"></i>Trends </a>
                 </li>
-
                 <li>
-                    <a href="hostToHost.html"> <i class="menu-icon fa fa-dashboard"></i>Host Graph</a>
+                    <a href="searchWeb.html"> <i class="menu-icon fa fa-dashboard"></i>Search </a>
                 </li>
-
                 <li>
-                    <a href="hostKeyWords.html"> <i class="menu-icon fa fa-dashboard"></i>Host KeyWords</a>
+                    <a href="hostToHost.html"> <i class="menu-icon fa fa-dashboard"></i>hostToHost Graph </a>
                 </li>
-
+                <li>
+                    <a href="hostKeyWords.html"> <i class="menu-icon fa fa-dashboard"></i>KeyWords</a>
+                </li>
 
             </ul>
         </div><!-- /.navbar-collapse -->
@@ -92,54 +91,14 @@
                             <button class="search-close" type="submit"><i class="fa fa-close"></i></button>
                         </form>
                     </div>
+
                 </div>
             </div>
 
-            <div class="col-sm-5">
-                <div class="user-area dropdown float-right">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
-                       aria-expanded="false">
-                        <img class="user-avatar rounded-circle" src="images/admin.jpg" alt="User Avatar">
-                    </a>
 
-                    <div class="user-menu dropdown-menu">
-                        <a class="nav-link" href="#"><i class="fa fa- user"></i>My Profile</a>
-
-                        <a class="nav-link" href="#"><i class="fa fa- user"></i>Notifications <span
-                                class="count">13</span></a>
-
-                        <a class="nav-link" href="#"><i class="fa fa -cog"></i>Settings</a>
-
-                        <a class="nav-link" href="#"><i class="fa fa-power -off"></i>Logout</a>
-                    </div>
-                </div>
-
-                <div class="language-select dropdown" id="language-select">
-                    <a class="dropdown-toggle" href="#" data-toggle="dropdown" id="language" aria-haspopup="true"
-                       aria-expanded="true">
-                        <i class="flag-icon flag-icon-us"></i>
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="language">
-                        <div class="dropdown-item">
-                            <span class="flag-icon flag-icon-fr"></span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-es"></i>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-us"></i>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="flag-icon flag-icon-it"></i>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
 
     </header><!-- /header -->
-    <!-- Header-->
 
     <div class="breadcrumbs">
         <div class="col-sm-4">
@@ -234,12 +193,13 @@
 <script src="assets/js/lib/data-table/buttons.html5.min.js"></script>
 <script src="assets/js/lib/data-table/buttons.print.min.js"></script>
 <script src="assets/js/lib/data-table/buttons.colVis.min.js"></script>
+<script src="isdoing.js"></script>
 <!--<script src="assets/js/lib/data-table/datatables-init.js"></script>-->
 
 
 <script type="text/javascript">
     var datatable = $('#search-results').DataTable({
-        order: [3,'desc'],
+        order: [3, 'desc'],
         columns: [
             {title: "Title"},
             {title: "Text"},
@@ -269,9 +229,9 @@
         var errorString = "";
         $.ajax({
             dataType: "json",
-            url: "http://localhost:50000/search/",
-            data:q,
-            beforeSend: function() {
+            url: site + "search/",
+            data: q,
+            beforeSend: function () {
                 jQuery("#result").slideUp();
                 jQuery(".loader").show();
                 jQuery("#search-area").hide();
