@@ -204,7 +204,8 @@
             {title: "Title"},
             {title: "Text"},
             {title: "Url"},
-            {title: "Score."}
+            {title: "Score"},
+            {title: "References To Hosts"}
         ]
     });
 
@@ -249,7 +250,7 @@
 
                     var dataSet = [];
                     data.result.forEach(function (d) {
-                        dataSet.push([d.title, d.text, d.url, d.score])
+                        dataSet.push([d.title, d.text, d.url, d.score,d.refCount])
                     });
                     datatable.rows.add(dataSet).columns.adjust().draw();
                 }

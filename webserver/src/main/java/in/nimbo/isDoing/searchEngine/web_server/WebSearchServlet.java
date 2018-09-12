@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -42,16 +41,10 @@ public class WebSearchServlet extends HttpServlet {
                 map.put("query", req.getParameter("q"));
                 SearchRequest searchRequest = new SearchRequest(Engine.getConfigs().get("elastic.search.index"));
                 SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-                QueryBuilder textQuery = QueryBuilders.matchQuery("text", req.getParameter("q"))
-                        .fuzziness(Fuzziness.AUTO)
-                        .maxExpansions(2);
+                QueryBuilder textQuery = QueryBuilders.matchQuery("text", req.getParameter("q"));
                 QueryBuilder titleQuery = QueryBuilders.matchQuery("title", req.getParameter("q"))
-                        .fuzziness(Fuzziness.AUTO)
-                        .maxExpansions(2)
                         .boost(2);
                 QueryBuilder linkQuery = QueryBuilders.matchQuery("url", req.getParameter("q"))
-                        .fuzziness(Fuzziness.AUTO)
-                        .maxExpansions(2)
                         .boost(3);
                 searchSourceBuilder.query(QueryBuilders.boolQuery().should(textQuery).should(titleQuery).should(linkQuery));
                 searchSourceBuilder.size(20);
