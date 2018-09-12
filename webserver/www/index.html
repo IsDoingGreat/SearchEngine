@@ -10,8 +10,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Sufee Admin - HTML5 Admin Template</title>
-    <meta name="description" content="Sufee Admin - HTML5 Admin Template">
+    <title>Admin Area</title>
+    <meta name="description" content="Admin Area">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="apple-touch-icon" href="apple-icon.png">
@@ -207,7 +207,7 @@
                             <i class="fa fa-user-plus"></i>
                         </div>
                         <div class="h4 mb-0">
-                            <span id="lru" class="count">385</span>
+                            <span id="lru" class="count">26023587</span>
                         </div>
                         <small class="text-muted text-uppercase font-weight-bold">LruRejected</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-2"
@@ -220,7 +220,7 @@
                             <i class="fa fa-cart-plus"></i>
                         </div>
                         <div class="h4 mb-0">
-                            <span id="duplicate" class="count">1238</span>
+                            <span id="duplicate" class="count">23025789</span>
                         </div>
                         <small class="text-muted text-uppercase font-weight-bold">Duplicate</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-3"
@@ -233,7 +233,7 @@
                             <i class="fa fa-pie-chart"></i>
                         </div>
                         <div class="h4 mb-0">
-                            <span id="success" class="count">28</span>%
+                            <span id="success" class="count">26523128</span>
                         </div>
                         <small class="text-muted text-uppercase font-weight-bold">Successful</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-4"
@@ -245,7 +245,7 @@
                         <div class="h1 text-muted text-right mb-4">
                             <i class="fa fa-clock-o"></i>
                         </div>
-                        <div id="time" class="h4 mb-0">5:34:11</div>
+                        <div id="time" class="h4 mb-0">53:34:11</div>
                         <small class="text-muted text-uppercase font-weight-bold">Up Time</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-5"
                              style="width: 40%; height: 5px;"></div>
@@ -257,7 +257,7 @@
                             <i class="fa fa-comments-o"></i>
                         </div>
                         <div class="h4 mb-0">
-                            <span id="fetcherThreads" class="count">972</span>
+                            <span id="fetcherThreads" class="count">50</span>
                         </div>
                         <small class="text-muted text-uppercase font-weight-bold">Active Fetcher Threads</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-1"
@@ -270,7 +270,7 @@
                             <i class="fa fa-comments-o"></i>
                         </div>
                         <div class="h4 mb-0">
-                            <span id="persisterThreads" class="count">972</span>
+                            <span id="persisterThreads" class="count">2</span>
                         </div>
                         <small class="text-muted text-uppercase font-weight-bold">Active Persister Threads</small>
                         <div class="progress progress-xs mt-3 mb-0 bg-flat-color-1"
@@ -305,7 +305,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: site + "status/",
+            url: "status/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {

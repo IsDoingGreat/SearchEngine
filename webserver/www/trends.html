@@ -241,7 +241,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: site + "newsTrends/",
+            url: "newsTrends/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
