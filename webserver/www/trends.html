@@ -275,7 +275,42 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: "tweetTrends/?h=10",
+            url: "tweetTrends/?h=6",
+            success: function (data) {
+                console.log(data);
+                if (('errors' in data) && data.errors.length > 0) {
+                    data.errors.forEach(
+                        function (error) {
+                            errorString += getError(error);
+                        }
+                    );
+                } else if (('result' in data)) {
+                    var text = "";
+                    data.result.forEach(function (t) {
+                        text += getTrendHtml(t.key, t.value);
+                    });
+                    jQuery("#twitter").html(text);
+                }
+            },
+            error: function (jqXHR, status, e) {
+                errorString += getError(status);
+                console.log(jqXHR, status, e);
+            },
+            complete: function (data) {
+                console.log(data);
+                jQuery("#twitterError").html(
+                    errorString
+                );
+            }
+        });
+    }
+
+
+    function getTwitterTrendsWithH(h) {
+        var errorString = "";
+        jQuery.ajax({
+            dataType: "json",
+            url: "tweetTrends/?h="+ h,
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
