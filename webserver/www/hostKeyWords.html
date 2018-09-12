@@ -160,7 +160,7 @@
                                 <div class="corner-ribon blue-ribon">
                                     <i class="fa fa-comment"></i>
                                 </div>
-                                <b style="font-size: 35px;">News Trends</b>
+                                <b style="font-size: 35px;">Keywords</b>
                             </div>
                             <ul class="list-group list-group-flush" id="keyword"></ul>
                             <div id="newsError"></div>
@@ -216,7 +216,7 @@
             "</div>";
     }
 
-   function getTrendHtml(t, n) {
+    function getTrendHtml(t, n) {
         return "<li class=\"list-group-item\">" +
             "<a href=\"#\">" + t + "<span" +
             "        class=\"badge badge-success pull-right\">" + n + "</span></a>" +
@@ -228,8 +228,8 @@
         $.ajax({
             dataType: "json",
             url: "http://localhost:50000/showKeyWords/",
-            data:q,
-            beforeSend: function() {
+            data: q,
+            beforeSend: function () {
                 jQuery("#keyword").html("");
                 jQuery("#result").slideUp();
                 jQuery(".loader").show();
@@ -246,7 +246,7 @@
                 } else if (('result' in data)) {
                     var text = "";
                     data.result.forEach(function (t) {
-                        text += getTrendHtml(t.key,t.count);
+                        text += getTrendHtml(t.key, t.count);
                     });
                     jQuery("#keyword").html(text);
                 }
