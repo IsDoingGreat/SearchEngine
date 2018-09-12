@@ -165,7 +165,7 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
-                            <strong class="card-title">Card with switch</strong>
+                            <strong class="card-title">latest News</strong>
                         </div>
                         <div class="card-body">
                             <div id="latestError"></div>
@@ -275,7 +275,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: site + "tweetTrends/",
+            url: "tweetTrends/?h=10",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
@@ -316,7 +316,7 @@
         var errorString = "";
         jQuery.ajax({
             dataType: "json",
-            url: site + "latestNews/",
+            url: "latestNews/",
             success: function (data) {
                 console.log(data);
                 if (('errors' in data) && data.errors.length > 0) {
