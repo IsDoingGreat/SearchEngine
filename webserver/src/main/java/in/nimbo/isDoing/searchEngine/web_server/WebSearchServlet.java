@@ -85,7 +85,7 @@ public class WebSearchServlet extends HttpServlet {
 
                         String host = Bytes.toString(result.getRow());
                         int hostRefsCount = Bytes.toInt(result.getValue(columnFamilyBytes, null));
-                        Engine.getOutput().show(Output.Type.INFO, host + " : " + hostRefsCount);
+//                        Engine.getOutput().show(Output.Type.INFO, host + " : " + hostRefsCount);
                         hostRefs.put(host, hostRefsCount);
                     }
                     table.close();

@@ -49,7 +49,7 @@ public class getLatestNews extends HttpServlet {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             for (SearchHit hit : search.getHits()) {
                 Map<String, Object> data = hit.getSourceAsMap();
-                System.out.println(data.get("date").getClass());
+//                System.out.println(data.get("date").getClass());
 //                data.computeIfPresent("date", (s, o) -> format.format(o));
                 data.computeIfPresent("text", (s, o) -> ((String) o).length() > 155 ? ((String) o).substring(0, 150) : o);
                 resultList.add(data);
